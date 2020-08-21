@@ -1,31 +1,18 @@
-// argparse.js - JavaScript argument parser.
-
-// TODO add optional type verification
-
+// vargs - minimal JavaScript argument parser.
 
 /* first get the args you want to accept and add them to an vargs object.
    when ready use parseArgs with an appropriate argument to interpret a list as arguments.
 */
 
-/* arg = object.create(null)
- * arg = {
- *  name: string | array
- *  type: any
- *  value: null | default
- *  required: true | false
- * }
- 
- */
-
-function inNestedSequence(target, sequence) {
-  for (let i of sequence) {
-    if (i.indexOf(target) !== -1) {
+function inNestedObject(target, sequence) {
+  for (let i = 0; i < sequence.length; i++) {
+    if (target in sequence[i]) {
       return true;
     } else {
       continue;
     }
   }
-  return false;
+  return false
 }
 
 function cleanString(string, dirt) {
@@ -33,130 +20,202 @@ function cleanString(string, dirt) {
 }
 
 function getOptionName(name) {
-  /* if name is an object, it is assumed to be an array
-   * where the last element is the name.
-   * otherwise name is assumed to be a string. */
-  if (typeof(name) === 'object') {
+  if (name instanceof Array) {
     return cleanString(name.slice(-1)[0], '-');
   } else {
     return cleanString(name, '-');
   }
 }
 
-
 class vargs {
   constructor() { // TODO add ability to add arguments heer
-    this.positionals = new Map();
-    this.optionals = new Map();
-  }
-  
-  addPositional(name, position) {
-    this.positionals.set(name.toString(), position);
-  }
-  
-  addOptional(names, defaultValue=null) {
-    this.optionals.set(names, defaultValue);
-  }
-  
-  removePositional(name) {
-    this.positionals.delete(name);
-  }
-  
-  removeOptional(name) {
-    let n = getOptionName(name);
-    this.optionals.delete(n);
-  }
-  
-  parseArgs(list) {
-    let element;
-    let name;
-    let value;
-    let arglist = new Map();
-    console.log('start parse');
-    for (let i = 0; i < list.length; i++) {
-      element = list[i];
-      console.log('element', element);
-      if (/^-+/.test(element)) { // if element begins with - or --
-        console.log('element is an option...');
-        for (let names of this.optionals.keys()) {
-          console.log(names, this.optionals.keys());
-          if (names.indexOf(element) !== -1) {
-            console.log('match with element', names[names.indexOf(element)]);
-            if (list[i + 1] === undefined) { // if there's nothing in front of the option
-              console.log('nothing up front');
-              if (this.optionals.get(names) !== null) {
-                console.log('theres a default value');
-                name = cleanString(names.slice(-1)[0], '-'); // this removes the leading dashes
-                value = this.optionals.get(names); // the default value
-                console.log(name, value);
-                arglist.set(name, value);
-              } else { // no default value
-                continue;
-              }
-            } else if (list[i + 1] !== undefined) { // if there's something in front of the option
-              console.log('something in front');
-              if (!inNestedSequence(list[i + 1], this.optionals.keys())) { // if the something is not in the list of option names
-                console.log('something is not an option name');
-                name = cleanString(names.slice(-1)[0], '-'); // this removes the leading dashes
-                value = list[i + 1]; // the next item that isn't another option or undefined
-                console.log(name, value);
-                arglist.set(name, value);
-              } else if (this.optionals.get(names) !== null) { // if the something is in the option names and the option has a default value
-                console.log('something is an option name; using default');
-                name = cleanString(names.slice(-1)[0], '-'); // this removes the leading dashes
-                value = this.optionals.get(names); // the default value
-                console.log(name, value);
-                arglist.set(name, value);
-              }
-            } else { // option has no default and has no value
-              continue;
-            }
-          }
-        }
+    /* if (args !== undefined) {
+      for (let i = 0; i < args.length; i++) {
+        addArg(args[i])
       }
-      else { // for positional elements
-        console.log('element is positional');
-        for (let name of this.positionals.keys()) {
-          console.log(name, this.positionals.keys());
-          console.log(list.indexOf(element), this.positionals.get(name));
-          if (list.indexOf(element) === this.positionals.get(name)) {
-            value = list[i];
-            console.log(value);
-            arglist.set(name, value);
-          }
-        }
+    } else { */
+    this.argList = [];
+    this.posCount = 0;
+    this.optCount = 0;
+  }
+  
+  addArg(nameValue, positional=true, defaultValue=null, requiredValue=true, isSwitch=true) {
+    let newArg = Object.create(null);
+    if (positional) {
+      newArg.type = 'pos';
+      newArg.position = this.posCount;
+      this.posCount += 1;
+    } else {
+      if (isSwitch) {
+        newArg.switch = true;
+      } else {
+        newArg.switch = false;
       }
-    } //check if all positional arguments are present
-    if (arglist.size < this.positionals.size) {
-      throw 'ARGPARSE: error: missing positional parameters';
-    } else if (arglist.size !== this.positionals.size + this.optionals.size) { // if arglist isn't full, populate default arguments
-      for (let arg of this.optionals.keys()) {
-        name = cleanString(arg.slice(-1)[0], '-');
-        value = this.optionals.get(arg);
-        if (!arglist.has(name) && value !== null) {
-          arglist.set(name, value);
+      newArg.type = 'opt';
+      this.optCount += 1;
+    }
+    newArg.name = nameValue;
+    newArg.value = defaultValue;
+    newArg.required = requiredValue;
+    this.argList.push(newArg);
+  }
+  
+  delArg(name) {
+    for (let i = 0; i < this.argList.length; i++) {
+      if (this.argList[i].name === name) {
+        this.argList.splice(this.argList.indexOf(this.argList[i]), 1);
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  get getPositionals() {
+    return this.argList.filter(obj => obj.type === 'pos');
+  }
+  
+  get getOptions() {
+    return this.argList.filter(obj => obj.type === 'opt');
+  }
+  
+  get getRequired() {
+    return this.argList.filter(obj => obj.required === true);
+  }
+  
+  // ? get switches ? get nulls
+  
+  verifyOption(input) {
+    for (let i = 0; i < this.argList.length; i++) {
+      if (this.argList[i].name.includes(input)) {
+        return this.argList[i];
+      }
+    }
+    return false;
+  }
+  
+  verifyPositional(inputPosition) {
+    for (let i = 0; i < this.argList.length; i++) {
+      if (this.argList[i].position === inputPosition) {
+        return this.argList[i];
+      }
+    }
+    return false;
+  }
+  
+  requiredCheck(input) {
+    // check required arguments are available
+    let count = 0;
+    let required = this.getRequired;
+    console.log(required);
+    required.forEach(req => {
+      if (req.name in input || getOptionName(req.name) in input) { count = count + 1; }
+      console.log(req.name, input, count, required.length);
+    });
+    if (count !== required.length) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  
+  isOptionValue(input, value) {
+    // check that a positional argument's value is not identical to an option's value
+    let options = this.getOptions;
+    let optionName;
+    for (let i = 0; i < options.length; i++) {
+      optionName = getOptionName(options[i].name);
+      //if (Object.keys(input).indexOf(optionName) !== -1) {
+      if (input.hasOwnProperty(optionName)) {
+        if (input[optionName] === value) {
+          return true;
         }
       }
     }
-    return arglist;
+    return false;
+  }
+  
+  parseArgs(inputList) {
+    //console.log('start parse');
+    let arg;
+    let currentInput;
+    //let result = Object.create(null);
+    let result = {};
+    for (let i = 0; i < inputList.length; i++) {
+      //console.log('looping');
+      currentInput = inputList[i];
+      arg = this.verifyOption(currentInput);
+      //console.log(currentInput, arg);
+      if (arg !== false) {
+        //console.log('found option');
+        if (arg.switch === true) { // if arg is a switch
+          //console.log('option is switch');
+          result[getOptionName(arg.name)] = arg.value;
+          //console.log(result);
+          continue;
+        }
+        if (inputList[i + 1] === undefined) { // if theres nothing in front
+          //console.log('nothing in front');
+          if (arg.value === null) { // if arg has no default
+            //console.log('no default value');
+            continue;
+          } else {
+            //console.log('using default value');
+            result[getOptionName(arg.name)] = arg.value;
+            //console.log(result);
+          }
+        } else { // something is in front
+          //console.log('something in front');
+          if (!this.verifyOption(inputList[i + 1])) { // if something isn't an option
+            //console.log('something is not an option');
+            result[getOptionName(arg.name)] = inputList[i + 1];
+            //console.log(result);
+            continue;
+          }
+        }
+      }
+      arg = this.verifyPositional(inputList.indexOf(currentInput));
+      if (arg !== false) {
+        //console.log('found positional');
+        //console.log(currentInput);
+        if (!this.verifyOption(currentInput)) {
+          if (this.isOptionValue(result, currentInput)) {
+            //console.log('positional value is an options value; skipping');
+            //console.log(result, currentInput);
+            continue;
+          }
+          //console.log('positional is not an option, nor is its value an options value');
+          result[arg.name] = currentInput;
+          //console.log(result);
+          continue;
+        } else {
+          continue;
+        }
+      }
+    }
+    //console.log('checking requireds');
+    if (this.requiredCheck(result) === false) {
+      return false;
+    }
+    // ensure that default options are specified
+    this.getOptions.forEach(option => {
+      if (option.switch !== false && result[getOptionName(option.name)] === undefined) {
+        result[getOptionName(option.name)] = false;
+      }
+    });
+    return result;
   }
   
 }
 
-
-a = new vargs();
-a.addPositional('hocus', 0);
-a.addPositional('pocus', 1);
-a.addOptional(['-v', '--verbose'], false);
-a.addOptional(['-a', '--abracadabra'], 42);
-a.addOptional(['-o', '--output']);
-
+let a = new vargs();
+a.addArg('huluhoop', true);
+a.addArg('hoophulu', true);
+a.addArg(['-v', '--verbose'], false, 'TRUE', false, true);
+a.addArg(['-c', '--cola'], false, 'coca', false, false);
+a.addArg(['-b', '--boo'], false, null, true, false);
 console.log(a);
 
-a.removeOptional('abracadabra');
-a.removePositional('pocus');
+let j = a.parseArgs(process.argv.slice(2));
 
-console.log(a);
+console.log('result :', j);
 
-b = a.parseArgs(process.argv.slice(2));
-console.log(b);

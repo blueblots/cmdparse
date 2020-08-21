@@ -1,9 +1,13 @@
-# argparse.js - command line argument parser
+# vargs - JavaScript command line argument parser
 
 ## Synopsis
 
 ## Description
 
-## Options
+**vargs** is a minimal command line argument parser. It supports positional and option arguments, 
+
+## Usage
+
+### Options
 
 ## Credits

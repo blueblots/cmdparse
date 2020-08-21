@@ -47,9 +47,9 @@ class vargs {
       this.posCount += 1;
     } else {
       if (flag) {
-        newArg.switch = true;
+        newArg.flag = true;
       } else {
-        newArg.switch = false;
+        newArg.flag = false;
       }
       newArg.type = 'opt';
       this.optCount += 1;
@@ -57,17 +57,15 @@ class vargs {
     newArg.name = name;
     newArg.value = value;
     newArg.required = required;
-    this.argList.push(newArg);
+    if (name instanceof Array) {
+      this[getOptionName(name)] = newArg;
+    } else {
+      this[name] = newArg;
+    }
   }
   
-  delArg(name) {
-    for (let i = 0; i < this.argList.length; i++) {
-      if (this.argList[i].name === name) {
-        this.argList.splice(this.argList.indexOf(this.argList[i]), 1);
-        return true;
-      }
-    }
-    return false;
+  set delArg(name) {
+    delete this[name];
   }
   
   get getPositionals() {

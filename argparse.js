@@ -39,14 +39,14 @@ class vargs {
     this.optCount = 0;
   }
   
-  addArg(nameValue, positional=true, defaultValue=null, requiredValue=true, isSwitch=true) {
+  addArg(name, positional=true, value=null, required=true, flag=true) {
     let newArg = Object.create(null);
     if (positional) {
       newArg.type = 'pos';
       newArg.position = this.posCount;
       this.posCount += 1;
     } else {
-      if (isSwitch) {
+      if (flag) {
         newArg.switch = true;
       } else {
         newArg.switch = false;
@@ -54,9 +54,9 @@ class vargs {
       newArg.type = 'opt';
       this.optCount += 1;
     }
-    newArg.name = nameValue;
-    newArg.value = defaultValue;
-    newArg.required = requiredValue;
+    newArg.name = name;
+    newArg.value = value;
+    newArg.required = required;
     this.argList.push(newArg);
   }
   
@@ -86,8 +86,11 @@ class vargs {
   
   verifyOption(input) {
     for (let i = 0; i < this.argList.length; i++) {
-      if (this.argList[i].name.includes(input)) {
-        return this.argList[i];
+      if (this.argList[i].name instanceof Array/*.includes(input)*/) {
+        if (this.argList[i].name.includes(input)) {
+          return this.argList[i];
+        }
+        //return this.argList[i];
       }
     }
     return false;
@@ -102,14 +105,14 @@ class vargs {
     return false;
   }
   
-  requiredCheck(input) {
+  verifyRequired(input) {
     // check required arguments are available
     let count = 0;
     let required = this.getRequired;
     console.log(required);
     required.forEach(req => {
-      if (req.name in input || getOptionName(req.name) in input) { count = count + 1; }
-      console.log(req.name, input, count, required.length);
+      if (input.has(req.name) || input.has(getOptionName(req.name))) { count = count + 1; }
+      console.log('verifyRequired', req.name, input, count, required.length);
     });
     if (count !== required.length) {
       return false;
@@ -125,8 +128,8 @@ class vargs {
     for (let i = 0; i < options.length; i++) {
       optionName = getOptionName(options[i].name);
       //if (Object.keys(input).indexOf(optionName) !== -1) {
-      if (input.hasOwnProperty(optionName)) {
-        if (input[optionName] === value) {
+      if (input.has(optionName)) {
+        if (input.get(optionName) === value) {
           return true;
         }
       }
@@ -135,57 +138,57 @@ class vargs {
   }
   
   parseArgs(inputList) {
-    //console.log('start parse');
+    console.log('start parse');
     let arg;
     let currentInput;
     //let result = Object.create(null);
-    let result = {};
+    let result = new Map();
     for (let i = 0; i < inputList.length; i++) {
-      //console.log('looping');
+      console.log('looping');
       currentInput = inputList[i];
       arg = this.verifyOption(currentInput);
-      //console.log(currentInput, arg);
+      console.log(currentInput, arg);
       if (arg !== false) {
-        //console.log('found option');
+        console.log('found option');
         if (arg.switch === true) { // if arg is a switch
-          //console.log('option is switch');
-          result[getOptionName(arg.name)] = arg.value;
-          //console.log(result);
+          console.log('option is switch');
+          result.set(getOptionName(arg.name), arg.value);
+          console.log(result);
           continue;
         }
         if (inputList[i + 1] === undefined) { // if theres nothing in front
-          //console.log('nothing in front');
+          console.log('nothing in front');
           if (arg.value === null) { // if arg has no default
-            //console.log('no default value');
+            console.log('no default value');
             continue;
           } else {
-            //console.log('using default value');
-            result[getOptionName(arg.name)] = arg.value;
-            //console.log(result);
+            console.log('using default value');
+            result.set(getOptionName(arg.name), arg.value);
+            console.log(result);
           }
         } else { // something is in front
-          //console.log('something in front');
+          console.log('something in front');
           if (!this.verifyOption(inputList[i + 1])) { // if something isn't an option
-            //console.log('something is not an option');
-            result[getOptionName(arg.name)] = inputList[i + 1];
-            //console.log(result);
+            console.log('something is not an option');
+            result.set(getOptionName(arg.name), inputList[i + 1]);
+            console.log(result);
             continue;
           }
         }
       }
       arg = this.verifyPositional(inputList.indexOf(currentInput));
       if (arg !== false) {
-        //console.log('found positional');
-        //console.log(currentInput);
+        console.log('found positional');
+        console.log(currentInput);
         if (!this.verifyOption(currentInput)) {
           if (this.isOptionValue(result, currentInput)) {
-            //console.log('positional value is an options value; skipping');
-            //console.log(result, currentInput);
+            console.log('positional value is an options value; skipping');
+            console.log(result, currentInput);
             continue;
           }
           //console.log('positional is not an option, nor is its value an options value');
-          result[arg.name] = currentInput;
-          //console.log(result);
+          result.set(arg.name, currentInput);
+          console.log(result);
           continue;
         } else {
           continue;
@@ -193,13 +196,13 @@ class vargs {
       }
     }
     //console.log('checking requireds');
-    if (this.requiredCheck(result) === false) {
+    if (this.verifyRequired(result) === false) {
       return false;
     }
     // ensure that default options are specified
     this.getOptions.forEach(option => {
-      if (option.switch !== false && result[getOptionName(option.name)] === undefined) {
-        result[getOptionName(option.name)] = false;
+      if (option.switch !== false && result.get(getOptionName(option.name)) === undefined) {
+        result.set(getOptionName(option.name), false);
       }
     });
     return result;

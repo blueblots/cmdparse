@@ -1,3 +1,5 @@
+change result to map
+
 streamline arg creation process
 add ability to initialize the object with arguments
 add ability to use compound arguments e.g zypper install foo

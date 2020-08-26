@@ -1,0 +1,21 @@
+{
+  "name": "vargs",
+  "version": "1.0.0",
+  "description": "flexible, minimalistic command-line argument parser",
+  "main": "vargs.js",
+  "private": true,
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "none",
+    "lint": "jshint *.js"
+  },
+  "author": "elizabeth m. <blueblots@protonmail.com>",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "jasmine": "^3.6.1",
+    "jshint": "^2.12.0"
+  },
+  "dependencies": {}
+}

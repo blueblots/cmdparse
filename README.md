@@ -1,33 +1,79 @@
 # vargs - JavaScript command line argument parser
 
-## Synopsis
-
 ## Description
 
-**vargs** is a minimal command line argument parser. It supports positional and option arguments, switches, required arguments, long and short options, and more.
+**vargs** is a minimalist command line argument parser. It supports positional and option arguments, flags, required arguments, multiple option names, and more. It offers a simple getter and setter based interface. It only focuses on processing arguments, leaving where you get your inputs from up to you.
 
 ## Usage
 
-Start by defining an instance of the `vargs` object; (make sure to `require` it first). Then use the `addArg` method to add arguments to your object.
-
-Example:
+Start by defining an instance of the `vargs` object; (make sure to `require` it first); then you can either add your arguments right away on the constructor or use the `addArg` setter to add arguments to your object:
 
 ```JavaScript
 const vargs = require('vargs');
 
-// start by defining your accepted arguments
+// using the constructor
+
+let myArgs = new vargs(
+	{
+		name: 'drink',
+		value: 'bubbletea'
+	},
+	{
+		name: '--garnish',
+		positional: false,
+		value: 'lemon',
+		required: false
+	}
+);
+
+// using the addArg setter
 
 let myArgs = new vargs();
 
-myArgs.addArg('aPositionalArgument'); //
+myArgs.addArg = {name: 'drink', value: 'bubbletea'};
+myArgs.addArg = {name: '--garnish', positional: false, value: 'lemon', required: false};
 
 ```
 
-## API
+Both of the above methods will produce the same result.
 
-An instance of`vargs` centers around it's `argList` property; this is where all the arguments that are added via `addArg` are located.
+Once you've set up your options, use the `parseArgs` method to detect input. `parseArgs` will create a new `vargs` instance based off of your accepted arguments and the input you pass to it. Then you can use the `vargs` object directly or transform it into a `Map` or object literal.
 
-### Methods
+Example (using constructor):
+```JavaScript
+let userArguments = myArgs.parseArgs(process.argv.slice(2));
+
+// using the vargs object
+
+console.log(userArguments.drink.value);
+// prints 'bubbletea'; or whatever value is first passed in input
+
+console.log(userArguments.garnish.value);
+// prints 'lemon'; or if '--garnish' is not given, prints undefined
+
+// using a map - results are the same as vargs example
+
+let argMap = userArguments.toMap();
+
+console.log(argMap.get(drink));
+console.log(argMap.get(garnish)); 
+
+// using an object literal - results are the same as vargs example
+
+let argMap = userArguments.toObject();
+
+console.log(argMap.drink);
+console.log(argMap.garnish);
+```
+
+
+## API Reference
+
+### Constructor
+
+### Getters
+
+### Setters
 
 ###### vargs.prototype.addArg(name, positional=true, value=null, required=true, flag=true)
 Add an argument to the calling `vargs` object.

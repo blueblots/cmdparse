@@ -1,15 +1,31 @@
 // TODO
-describe("Positional test", function() {
+describe("Positional tests for vargs -", function() {
   const {vargs} = require('../vargs');
   let testInput;
   let testVargs;
   
   beforeEach(function() {
-    testInput = ['cocktail', 'slush', 'icetea'];
+    testInput = [];
     testVargs = new vargs();
   });
   
-  it("correctly receives arguments", function() {
+  it("can correctly count the number of positional arguments", function() {
+    testVargs.addArg = {name: 'booze'};
+    testVargs.addArg = {name: 'softdrink'};
+    testVargs.addArg = {name: 'tea'};
+    expect(testVargs.posCount).toEqual(3);
+  });
+  
+  it("can return a correct listing of positional arguments", function() {
+    testVargs.addArg = {name: 'booze'};
+    testVargs.addArg = {name: 'softdrink'};
+    testVargs.addArg = {name: 'tea'};
+    testVargs.addArg = {name: ['-v', '--verbose'], positional: false};
+    testVargs.addArg = {name: '--garnish', positional: false};
+    expect(testVargs.positionals.length).toEqual(3);
+  });
+  
+  it("can correctly receive arguments", function() {
     // check that defaults load correctly
     testVargs.addArg = {name: 'booze'};
     expect(testVargs.booze).toBeDefined();
@@ -24,7 +40,8 @@ describe("Positional test", function() {
     expect(testVargs.cola).toBeDefined();
   });
   
-  it("correctly parses positional arguments", function() {
+  it("can correctly parse positional arguments", function() {
+    testInput = ['cocktail', 'slush', 'icetea'];
     testVargs.addArg = {name: 'booze'};
     testVargs.addArg = {name: 'softdrink'};
     testVargs.addArg = {name: 'tea'};
@@ -38,11 +55,35 @@ describe("Positional test", function() {
   });
   
   it("returns false if required arguments are missing", function() {
+    testInput = ['cocktail', 'slush', 'icetea'];
     testVargs.addArg = {name: 'booze'};
     testVargs.addArg = {name: 'softdrink'};
     testVargs.addArg = {name: 'tea'};
     let parse = testVargs.parseArgs(testInput.slice(1));
     expect(parse).toBeFalse();
+  });
+  
+  it("ignores out of position arguments that are not required", function() {
+    testInput = ['--add', 'cocktail', 'slush', 'icetea'];
+    testVargs.addArg = {name: 'booze', required: false};
+    testVargs.addArg = {name: 'softdrink', required: false};
+    testVargs.addArg = {name: 'tea'};
+    testVargs.addArg = {name: '--add', positional: false, required: false, flag: false};
+    let parse = testVargs.parseArgs(testInput);
+    expect(parse).not.toBeFalse;
+    expect(parse.booze).toBeUndefined();
+    expect(parse.softdrink).toBeUndefined();
+  });
+  
+  it("does not interpret an option's value as a positional argument", function() {
+    testInput = ['cocktail', '--add', 'icetea'];
+    testVargs.addArg = {name: 'booze', required: false};
+    testVargs.addArg = {name: 'softdrink', required: false};
+    testVargs.addArg = {name: 'tea', required: false};
+    testVargs.addArg = {name: '--add', positional: false, flag: false};
+    let parse = testVargs.parseArgs(testInput);
+    expect(parse.add.value).toEqual('icetea');
+    expect(parse.tea).toBeUndefined();
   });
 
 });

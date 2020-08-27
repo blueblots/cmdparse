@@ -8,7 +8,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "jasmine",
+    "test": "jasmine --config=jasmine.json",
     "lint": "jshint *.js"
   },
   "author": "elizabeth m. <blueblots@protonmail.com>",

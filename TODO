@@ -1,4 +1,3 @@
-rehash parseArgs
 
-streamline arg creation process
+make test suite
 add ability to use compound arguments e.g zypper install foo

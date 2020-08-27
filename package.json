@@ -8,7 +8,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "none",
+    "test": "jasmine",
     "lint": "jshint *.js"
   },
   "author": "elizabeth m. <blueblots@protonmail.com>",

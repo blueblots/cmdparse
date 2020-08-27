@@ -27,7 +27,7 @@ function getOptionName(name) {
   }
 }
 
-class vargs {
+exports.vargs = class {
   constructor(...args) {
     if (args !== undefined) {
       for (let i = 0; i < args.length; i++) {
@@ -136,7 +136,7 @@ class vargs {
     return result;
   }
   
-  toObjectLiteral() {
+  toObject() {
     let result = {};
     this.options.forEach(prop => {
       result[getOptionName(prop.name)] = prop.value;
@@ -372,57 +372,57 @@ class vargs {
   */
   
   parseArgs(inputList) {
-    console.log('start parse');
+    //console.log('start parse');
     let arg;
     let currentInput;
-    let result = new vargs();
+    let result = new exports.vargs();
     for (let i = 0; i < inputList.length; i++) {
-      console.log('looping');
+      //console.log('looping');
       currentInput = inputList[i];
       arg = this.verifyOption(currentInput);
-      console.log(currentInput, arg);
+      //console.log(currentInput, arg);
       if (arg !== false) {
-        console.log('found option');
+        //console.log('found option');
         if (arg.flag === true) { // if arg is a switch
-          console.log('option is flag');
+          //console.log('option is flag');
           result.addArg = {name: getOptionName(arg.name), positional: false, value: arg.value, required: arg.required, flag: arg.flag};
-          console.log(result);
+          //console.log(result);
           continue;
         }
         if (inputList[i + 1] === undefined) { // if theres nothing in front
-          console.log('nothing in front');
+          //console.log('nothing in front');
           if (arg.value === null) { // if arg has no default
-            console.log('no default value');
+            //console.log('no default value');
             continue;
           } else {
-            console.log('using default value');
+            //console.log('using default value');
             result.addArg = {name: getOptionName(arg.name), positional: false, value: arg.value, required: arg.required, flag: arg.flag};
-            console.log(result);
+            //console.log(result);
           }
         } else { // something is in front
-          console.log('something in front');
+          //console.log('something in front');
           if (!this.verifyOption(inputList[i + 1])) { // if something isn't an option
-            console.log('something is not an option');
+            //console.log('something is not an option');
             result.addArg = {name: getOptionName(arg.name), positional: false, value: inputList[i + 1], required: arg.required, flag: arg.flag};
-            console.log(result);
+            //console.log(result);
             continue;
           }
         }
       }
       arg = this.verifyPositional(inputList.indexOf(currentInput));
       if (arg !== false) {
-        console.log('found positional');
-        console.log(currentInput);
+        //console.log('found positional');
+        //console.log(currentInput);
         if (!this.verifyOption(currentInput)) {
           if (this.isOptionValue(result, currentInput)) {
-            console.log('positional value is an options value; skipping');
-            console.log(result, currentInput);
+            //console.log('positional value is an options value; skipping');
+            //console.log(result, currentInput);
             continue;
           }
           //console.log('positional is not an option, nor is its value an options value');
-          console.log(arg);
+          //console.log(arg);
           result.addArg = {name: arg.name, positional: true, value: currentInput, required: arg.required, flag: arg.flag};
-          console.log(result);
+          //console.log(result);
           continue;
         } else {
           continue;
@@ -452,19 +452,19 @@ class vargs {
     name: 'hoophulu'
   }
 );*/
-let a = new vargs();
+/*let a = new vargs();
 a.addArg = {name: 'huluhoop', positional: true, required: false, value: 'yui'};
 a.addArg = {name: 'hoophulu', positional: true};
 a.addArg = {name: '--verbose', positional: false, required: false, value: 'TRUE'};
 a.addArg = {name: ['-c', '--cola'], positional: false, required: false, value: 'coca', flag: false};
 a.addArg = {name: ['-b', '--boo'], positional: false, flag: false};
-
+*/
 //console.log(Object.keys(a));
 /*a.addArg('hoophulu', true);
 a.addArg(['-v', '--verbose'], false, 'TRUE', false, true);
 a.addArg(['-c', '--cola'], false, 'coca', false, false);
 a.addArg(['-b', '--boo'], false, null, true, false);*/
-console.log('raw,', a);
+//console.log('raw,', a);
 
 //let j = a.parseArgsMap(process.argv.slice(2));
 //console.log('map,', j);
@@ -472,15 +472,15 @@ console.log('raw,', a);
 //let k = a.parseArgsObject(process.argv.slice(2));
 //console.log('object literal,', k);
 
-let f = a.parseArgs(process.argv.slice(2));
-console.log('vargs object,', f);
+//let f = a.parseArgs(process.argv.slice(2));
+//console.log('vargs object,', f);
 
-let b = f.toMap();
-console.log('mappified,', b);
+//let b = f.toMap();
+//console.log('mappified,', b);
 
-let c = f.toObjectLiteral();
-console.log('objectified,', c);
+//let c = f.toObject();
+//console.log('objectified,', c);
 
-console.log('pos,', f.positionals);
-console.log('opts,', f.options);
+//console.log('pos,', f.positionals);
+//console.log('opts,', f.options);
 //console.log(f.cola.value, f.huluhoop.value);

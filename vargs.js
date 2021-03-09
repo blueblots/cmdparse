@@ -21,44 +21,184 @@ function cleanString(string, dirt) {
 
 function getOptionName(name) {
   if (name instanceof Array) {
+    console.log(name);
     return cleanString(name.slice(-1)[0], '-');
   } else {
     return cleanString(name, '-');
   }
 }
 
-exports.vargs = class vargs {
-  constructor(...args) {
-    if (args !== undefined) {
-      for (let i = 0; i < args.length; i++) {
-        let {name, positional, value, required, flag} = args[i];
-        this.addArg(name, positional, value, required, flag);
-      }
-    }
+class Arg {
+  constructor(name, value, required) {
+    this.name = name;
+    this.value = value;
+    this.required = required;
+  }
+}
+
+class Positional extends Arg {
+  constructor(name, value, required, position) {
+    super(name, value, required);
+    this.position = position;
+  }
+}
+
+class Option extends Arg {
+  constructor(name, value, required, flag) {
+    super(name, value, required);
+    this.flag = flag;
+  } 
+}
+
+class vargs {
+  constructor(help = '') {
+    this.help = help;
+    //if (args !== undefined) {
+    //  for (let i = 0; i < args.length; i++) {
+    //    let {name, positional, value, required, flag} = args[i];
+    //    this.addArg(name, positional, value, required, flag);
+    //  }
+    //}
   }
   
-  set addArg({name, positional=true, value=null, required=true, flag=true}) {
-    let newArg = Object.create(null);
-    if (positional) {
-      newArg.position = this.posCount;
+  // TODO
+  
+  set addPositional({name, value=null, required=true, position=this.posCount}) {
+    let newPositional = new Positional(name, value, required, position);
+    //newPositional.name = name;
+    //newPositional.value = value;
+    //newPositional.required = required;
+    //newPositional.position = position;
+    //if (name instanceof Array) {
+    //  this[getOptionName(name)] = newPositional;
+    //} else {
+    this[name] = newPositional;
+    //}
+  }
+  
+  parsePositional(currentInput, positional, result) {
+    //console.log('found positional');
+    //console.log(currentInput, positional, result);
+    if (!this.verifyOption(currentInput)) {
+      if (this.isOptionValue(result, currentInput)) {
+        //console.log('positional value is an options value; skipping');
+        //console.log(result, currentInput);
+        return false;
+      }
+      //console.log('positional is not an option, nor is its value an options value');
+      //console.log(positional);
+      return {name: positional.name, value: currentInput, required: positional.required, position: positional.position};
     } else {
-      if (flag) {
-        newArg.flag = true;
+      return false;
+    }
+    throw Error;
+  }
+  
+  set addOption({name, value=null, required=true, flag=false}) {
+    let newOption = new Option(name, value, required, flag);
+    //let newOption = Object.create(null);
+    //newOption.name = name;
+    //newOption.value = value;
+    //newOption.required = required;
+    //newOption.flag = flag;
+    //console.log('adding option', newOption);
+    this[getOptionName(name)] = newOption;
+  }
+  
+  parseOption(currentInput, inputList, count) {
+    //console.log('found option');
+    if (currentInput.flag === true) { // if arg is a switch
+      //console.log('option is flag');
+      return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag};
+    }
+    if (inputList[count + 1] === undefined) { // if theres nothing in front
+      //console.log('nothing in front');
+      if (currentInput.value === null) { // if arg has no default
+        //console.log('no default value');
+        return false;
       } else {
-        newArg.flag = false;
+        //console.log('using default value');
+        return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag};
+      }
+    } else { // something is in front
+      //console.log('something in front');
+      if (!this.verifyOption(inputList[count + 1])) { // if something isn't an option
+        //console.log('something is not an option');
+        return {name: currentInput.name, value: inputList[count + 1], required: currentInput.required, flag: currentInput.flag};
+      } else {
+        return false;
       }
     }
-    newArg.name = name;
-    newArg.value = value;
-    newArg.required = required;
-    if (name instanceof Array) {
-      this[getOptionName(name)] = newArg;
-    } else if (newArg.position === undefined) {
-      this[getOptionName(name)] = newArg;
-    } else {
-      this[name] = newArg;
-    }
+    throw Error;
   }
+  
+  parse(inputList) {
+    console.log('start parse');
+    let arg;
+    let currentInput;
+    let detectedPositional;
+    let detectedOption;
+    let result = new vargs();
+    for (let i = 0; i < inputList.length; i++) {
+      //console.log('looping');
+      currentInput = inputList[i];
+      arg = this.verifyOption(currentInput);
+      //console.log(currentInput, arg);
+      if (arg !== false) {
+        //console.log('opt: ', arg);
+        detectedOption = this.parseOption(arg, inputList, i);
+        //console.log('detopt: ', detectedOption);
+        if (detectedOption !== false) {
+          result.addOption = detectedOption;
+        } else {
+          continue;
+        }
+      }
+      arg = this.verifyPositional(inputList.indexOf(currentInput));
+      if (arg !== false) {
+        //console.log('pos: ', arg);
+        detectedPositional = this.parsePositional(currentInput, arg, result);
+        //console.log('detpos: ', detectedPositional);
+        if (detectedPositional !== false) {
+          result.addPositional = detectedPositional;
+        } else {
+          continue;
+        }
+      }
+    }
+    //console.log('nono', arg);
+    //console.log('checking requireds');
+    if (this.verifyRequired(result) === false) {
+      return false;
+    }
+    return result;
+  }
+  
+  
+  // TODO
+  set addCompound({name, required=true, commands=new vargs()}) {
+    let newCompoundArg = Object.create(null);
+    newCompoundArg.name = name;
+    newCompoundArg.required = required;
+    newCompoundArg.commands = commands;
+    this[name] = newCompoundArg;
+  }
+  
+  get compounds() {
+    let result = [];
+    Object.getOwnPropertyNames(this).forEach(prop => {
+      if (this[prop].commands !== undefined) {
+        result.push(this[prop]);
+      }
+    });
+    return result;
+  }
+  
+  get comCount() {
+    return this.compounds.length;
+  }
+  
+  parseCompound() {};
   
   set delArg(name) {
     delete this[name];
@@ -79,7 +219,7 @@ exports.vargs = class vargs {
   get positionals() {
     let result = [];
     Object.getOwnPropertyNames(this).forEach(prop => {
-      if (this[prop].position !== undefined) {
+      if (this[prop] instanceof Positional) {
         result.push(this[prop]);
       }
     });
@@ -89,7 +229,7 @@ exports.vargs = class vargs {
   get options() {
     let result = [];
     Object.getOwnPropertyNames(this).forEach(prop => {
-      if (this[prop].position === undefined) {
+      if (this[prop] instanceof Option) {
         result.push(this[prop]);
       }
     });
@@ -125,30 +265,7 @@ exports.vargs = class vargs {
     });
     return result;
   }
-  
-  toMap() {
-    let result = new Map();
-    this.options.forEach(prop => {
-      console.log(prop.name);
-      result.set(getOptionName(prop.name), prop.value);
-    });
-    this.positionals.forEach(prop => {
-      result.set(prop.name, prop.value);
-    });
-    return result;
-  }
-  
-  toObject() {
-    let result = {};
-    this.options.forEach(prop => {
-      result[getOptionName(prop.name)] = prop.value;
-    });
-    this.positionals.forEach(prop => {
-      result[prop.name] = prop.value;
-    });
-    return result;
-  }
-  
+
   verifyOption(input) {
     for (let i = 0; i < this.optCount; i++) {
       if (this.options[i].name instanceof Array) {
@@ -199,117 +316,19 @@ exports.vargs = class vargs {
     }
     return false;
   }
-  
-  parseArgs(inputList) {
-    console.log('start parse');
-    let arg;
-    let currentInput;
-    let result = new exports.vargs();
-    for (let i = 0; i < inputList.length; i++) {
-      console.log('looping');
-      currentInput = inputList[i];
-      arg = this.verifyOption(currentInput);
-      console.log(currentInput, arg);
-      if (arg !== false) {
-        console.log('found option');
-        if (arg.flag === true) { // if arg is a switch
-          console.log('option is flag');
-          result.addArg = {name: arg.name, positional: false, value: arg.value, required: arg.required, flag: arg.flag};
-          console.log(result);
-          continue;
-        }
-        if (inputList[i + 1] === undefined) { // if theres nothing in front
-          console.log('nothing in front');
-          if (arg.value === null) { // if arg has no default
-            console.log('no default value');
-            continue;
-          } else {
-            console.log('using default value');
-            result.addArg = {name: arg.name, positional: false, value: arg.value, required: arg.required, flag: arg.flag};
-            console.log(result);
-          }
-        } else { // something is in front
-          console.log('something in front');
-          if (!this.verifyOption(inputList[i + 1])) { // if something isn't an option
-            console.log('something is not an option');
-            result.addArg = {name: arg.name, positional: false, value: inputList[i + 1], required: arg.required, flag: arg.flag};
-            console.log(result);
-            continue;
-          }
-        }
-      }
-      arg = this.verifyPositional(inputList.indexOf(currentInput));
-      if (arg !== false) {
-        console.log('found positional');
-        console.log(currentInput);
-        if (!this.verifyOption(currentInput)) {
-          if (this.isOptionValue(result, currentInput)) {
-            console.log('positional value is an options value; skipping');
-            console.log(result, currentInput);
-            continue;
-          }
-          console.log('positional is not an option, nor is its value an options value');
-          console.log(arg);
-          result.addArg = {name: arg.name, positional: true, value: currentInput, required: arg.required, flag: arg.flag};
-          console.log(result);
-          continue;
-        } else {
-          continue;
-        }
-      }
-    }
-    console.log('checking requireds');
-    if (this.verifyRequired(result) === false) {
-      return false;
-    }
-    // ensure that default options are specified
-    //this.options.forEach(option => {
-    //  if (option.flag !== false && result[getOptionName(option.name)] === undefined) {
-    //    result[getOptionName(option.name)] = false;
-    //  }
-    //});
-    return result;
-  }
 }
 
-/*let a = new vargs(
-  {
-    name: 'huluhoop',
-    positional: true
-  }, 
-  {
-    name: 'hoophulu'
-  }
-);*/
-/*let a = new vargs();
-a.addArg = {name: 'huluhoop', positional: true, required: false, value: 'yui'};
-a.addArg = {name: 'hoophulu', positional: true};
-a.addArg = {name: '--verbose', positional: false, required: false, value: 'TRUE'};
-a.addArg = {name: ['-c', '--cola'], positional: false, required: false, value: 'coca', flag: false};
-a.addArg = {name: ['-b', '--boo'], positional: false, flag: false};
-*/
-//console.log(Object.keys(a));
-/*a.addArg('hoophulu', true);
-a.addArg(['-v', '--verbose'], false, 'TRUE', false, true);
-a.addArg(['-c', '--cola'], false, 'coca', false, false);
-a.addArg(['-b', '--boo'], false, null, true, false);*/
-//console.log('raw,', a);
+let a;
 
-//let j = a.parseArgsMap(process.argv.slice(2));
-//console.log('map,', j);
+a = new vargs();
+a.addPositional = {name: 'drink', positional: true};
+a.addPositional = {name: 'garnish', required: false};
+a.addOption = {name: ['-a', '--additions']};
 
-//let k = a.parseArgsObject(process.argv.slice(2));
-//console.log('object literal,', k);
+console.log('positionals: ', a.positionals);
+console.log('options: ', a.options);
+console.log('required: ', a.required);
 
-//let f = a.parseArgs(process.argv.slice(2));
-//console.log('vargs object,', f);
-
-//let b = f.toMap();
-//console.log('mappified,', b);
-
-//let c = f.toObject();
-//console.log('objectified,', c);
-
-//console.log('pos,', f.positionals);
-//console.log('opts,', f.options);
-//console.log(f.cola.value, f.huluhoop.value);
+console.log(a);
+let b = a.parse(process.argv.slice(2));
+console.log('parse: ', b);

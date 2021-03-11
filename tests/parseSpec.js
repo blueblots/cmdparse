@@ -3,7 +3,7 @@ const {Positional, Option} = require('../lib/class.js');
 
 describe('Parser', function() {
   let args;
-  let argString = ['bubbletea', 'lemon', 'tea', '-l', '--additions', 'pineapple'];
+  let argString = ['bubbletea', 'lemon', 'tea', '-l', '--additions', 'pineapple', '--flavor'];
   let result;
   
   beforeEach(function() {
@@ -43,6 +43,7 @@ describe('Parser', function() {
   it('can parse option arguments and flags', function() {
     args.addOption = {name: ['-a', '--additions']};
     args.addOption = {name: ['-l', '--large'], value: 'XXL', flag: true};
+    args.addOption = {name: '--flavor', value: 'sweet'};
     result = args.parse(argString);
     // check if parse succeeded
     expect(result).toBeInstanceOf(vargs);
@@ -51,6 +52,8 @@ describe('Parser', function() {
     expect(result.additions).toBeInstanceOf(Option);
     expect(result.large).toBeDefined();
     expect(result.large).toBeInstanceOf(Option);
+    expect(result.flavor).toBeDefined();
+    expect(result.flavor).toBeInstanceOf(Option);
     // check if arguments' properties are correct
     expect(result.additions.name).toEqual(['-a', '--additions']);
     expect(result.additions.value).toEqual('pineapple');
@@ -60,12 +63,17 @@ describe('Parser', function() {
     expect(result.large.value).toEqual('XXL');
     expect(result.large.required).toEqual(false);
     expect(result.large.flag).toEqual(true);
+    expect(result.flavor.name).toEqual('--flavor');
+    expect(result.flavor.value).toEqual('sweet');
+    expect(result.flavor.required).toEqual(false);
+    expect(result.flavor.flag).toEqual(false);
     // check that bogus options and positionals are not included
     expect(result.bubbletea).not.toBeDefined();
     expect(result.lemon).not.toBeDefined();
     expect(result.tea).not.toBeDefined();
     expect(result['-l']).not.toBeDefined();
     expect(result['--additions']).not.toBeDefined();
+    expect(result['--flavor']).not.toBeDefined();
     expect(result.pineapple).not.toBeDefined();
   });
   

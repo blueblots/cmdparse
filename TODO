@@ -1,3 +1,3 @@
-
-make test suite
+refine test suite
+add multiple option features
 add ability to use compound arguments e.g zypper install foo

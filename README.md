@@ -2,11 +2,11 @@
 
 ## Description
 
-**vargs** is a minimalist command line argument parser. It supports positional and option arguments, flags, required arguments, multiple option names, and more. It offers a simple getter and setter based interface. It only focuses on processing arguments, leaving where you get your inputs from up to you.
+**vargs** is a command line argument parser. It supports positional and option arguments, flags, required arguments, multiple option names, and more. It uses a simple getter and setter based interface. It is inspired by Python's `argparse` module.
 
-## Usage
+## Getting started
 
-Start by defining an instance of the `vargs` object; (make sure to `require` it first); then you can either add your arguments right away on the constructor or use the `addArg` setter to add arguments to your object:
+Start by defining an instance of the `vargs` object; then you can either add your arguments right away on the constructor or use the `addPositional`, `addOption` or `addCompound` setters to add arguments to your object:
 
 ```JavaScript
 const vargs = require('vargs');
@@ -15,14 +15,15 @@ const vargs = require('vargs');
 
 let myArgs = new vargs(
 	{
+        type: 'positional',
 		name: 'drink',
 		value: 'bubbletea'
 	},
 	{
+        type: 'option',
 		name: '--garnish',
-		positional: false,
 		value: 'lemon',
-		required: false
+		flag: true
 	}
 );
 
@@ -30,18 +31,18 @@ let myArgs = new vargs(
 
 let myArgs = new vargs();
 
-myArgs.addArg = {name: 'drink', value: 'bubbletea'};
-myArgs.addArg = {name: '--garnish', positional: false, value: 'lemon', required: false};
+myArgs.addPositional = {name: 'drink'};
+myArgs.addOption = {name: '--garnish' value: 'lemon', flag: true};
 
 ```
 
 Both of the above methods will produce the same result.
 
-Once you've set up your options, use the `parseArgs` method to detect input. `parseArgs` will create a new `vargs` instance based off of your accepted arguments and the input you pass to it. Then you can use the `vargs` object directly or transform it into a `Map` or object literal.
+Once you've set up your options, use the `parse` method to detect input. `parse` will create a new `vargs` instance based off of your accepted arguments and the input you pass to it. Then you can use the `vargs` object directly or transform it into a `Map` or object literal.
 
 Example (using constructor):
 ```JavaScript
-let userArguments = myArgs.parseArgs(process.argv.slice(2));
+let userArguments = myArgs.parse(process.argv.slice(2));
 
 // using the vargs object
 
@@ -67,30 +68,41 @@ console.log(argMap.garnish);
 ```
 
 
-## API Reference
+## Reference manual
 
-### Constructor
+All the argument types share the following properties:
 
-### Getters
+- name - holds the property name/option name for the argument, used in your code to refer to it (for options, this is also the token denoting the option).
+- value - holds the value retrieved from a command string after doing `vargs.parse`, also holds the default value if one is provided.
+- required - a `true`/`false` value which determines if the argument must be provided.
 
-### Setters
+### Positional arguments
 
-###### vargs.prototype.addArg(name, positional=true, value=null, required=true, flag=true)
-Add an argument to the calling `vargs` object.
+Positional arguments are arguments that determine their value based on their position in the command string. This means that positional arguments also have a `position` property (which is zero-indexed, meaning that the first item has an index of 0) that determines where in the input the argument should appear. vargs also supports positional arguments with default values; this means that if a positional argument is not detected, a default value will be used in its place.
 
-- `name` 
-	+ Value that will be used as the argument's name when parsed.
-- `positional`
-	+ Boolean value that determines if argument is positional or not. <br> Defaults to `true`. If set to `false` then the argument will be treated as an option.
-- `value`
-	+ Sets default value of the argument. Defaults to `null`.
-- `required`
-	+ Boolean value that determines if the argument is required. Defaults to `true`; set to `false` if you are OK with the option being omitted. If the argument is not found when parsing then `parseArg` will return false.
-- `flag`
-	+ Boolean that determines if the argument is treated as a flag. It only applies if the argument is an option (e.g. if `positional` is set to `false`).
+An example:
 
-###### vargs.prototype.delArg(name)
-	
-###### vargs.prototype.parseArgs(inputList)
+```
+
+```
+
+### Option arguments
+
+Option arguments are arguments that can determine their value based on values in front of them (*e.g.* `--target foo/`), or by their presence or absence (*e.g.* `--verbose` to change program output, also referred to as *flags*). Their position in the command string is irrelevant, however if they displace a positional argument then the positional argument will be set to its default value or ignored.
+
+An example:
+
+```
+
+```
+
+### Compound arguments
+
+Compound arguments are arguments which themselves take further arguments (examples of programs using this type of argument are git, `git commit -s`, or npm, `npm run test`). This allows one to construct a more complex CLI interface.
+
+An example:
+
+```
+```
 
 ## Credits

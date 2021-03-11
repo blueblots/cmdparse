@@ -1,9 +1,5 @@
 // vargs - minimal JavaScript argument parser.
 
-/* first get the args you want to accept and add them to an vargs object.
-   when ready use parseArgs with an appropriate argument to interpret a list as arguments.
-*/
-
 const {Positional, Option} = require('./lib/class.js');
 const helperlib = require('./lib/helper.js');
 
@@ -12,20 +8,72 @@ class vargs {
     this.help = help;
   }
   
-  // TODO
-  
   set addPositional({name, value=null, required=true, position=this.posCount}) {
     let newPositional = new Positional(name, value, required, position);
-    //newPositional.name = name;
-    //newPositional.value = value;
-    //newPositional.required = required;
-    //newPositional.position = position;
-    //if (name instanceof Array) {
-    //  this[helperlib.getOptionName(name)] = newPositional;
-    //} else {
     this[name] = newPositional;
-    //}
   }
+  
+  set addOption({name, value=null, required=false, flag=false}) {
+    let newOption = new Option(name, value, required, flag);
+    this[helperlib.getOptionName(name)] = newOption;
+  }
+  
+  // TODO
+  set addCompound({name, required=true, commands=new vargs()}) {
+    console.log('TODO: unimplemented');
+  }
+  
+  set delArg(name) {
+    delete this[name];
+  }
+  
+  get posCount() {
+    return this.positionals.length;
+  }
+  
+  get optCount() {
+    return this.options.length;
+  }
+  
+  get reqCount() {
+    return this.required.length;
+  }
+  
+  get comCount() {
+    //return this.compounds.length;
+    console.log('TODO: unimplemented');
+  }
+  
+  get compounds() {
+    console.log('TODO: unimplemented');
+  }
+  
+  get positionals() {
+    return helperlib.getPropertiesByType(this, Positional);
+  }
+  
+  get options() {
+    return helperlib.getPropertiesByType(this, Option);
+  }
+  
+  get required() {
+    return helperlib.getPropertiesByProperty(this, 'required');
+  }
+  
+  get flags() {
+    return helperlib.getPropertiesByProperty(this, 'flag');
+  }
+
+  // unused
+  //get values() {
+  //  let result = [];
+  //  Object.getOwnPropertyNames(this).forEach(prop => {
+  //    if (this[prop].value !== null) {
+  //      result.push(this[prop].value);
+  //    }
+  //  });
+  //  return result;
+  //}
   
   parsePositional(currentInput, positional, result) {
     //console.log('found positional');
@@ -45,35 +93,29 @@ class vargs {
     throw Error;
   }
   
-  set addOption({name, value=null, required=false, flag=false}) {
-    let newOption = new Option(name, value, required, flag);
-    //let newOption = Object.create(null);
-    //newOption.name = name;
-    //newOption.value = value;
-    //newOption.required = required;
-    //newOption.flag = flag;
-    //console.log('adding option', newOption);
-    this[helperlib.getOptionName(name)] = newOption;
-  }
-  
   parseOption(currentInput, inputList, count) {
     //console.log('found option');
-    if (currentInput.flag === true) { // if arg is a switch
+    if (currentInput.flag === true) {
+      // if arg is a switch
       //console.log('option is flag');
       return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag};
     }
-    if (inputList[count + 1] === undefined) { // if theres nothing in front
+    if (inputList[count + 1] === undefined) {
+      // if theres nothing in front
       //console.log('nothing in front');
-      if (currentInput.value === null) { // if arg has no default
+      if (currentInput.value === null) {
+        // if arg has no default
         //console.log('no default value');
         return false;
       } else {
         //console.log('using default value');
         return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag};
       }
-    } else { // something is in front
+    } else {
+      // something is in front
       //console.log('something in front');
-      if (!this.verifyOption(inputList[count + 1])) { // if something isn't an option
+      if (!this.verifyOption(inputList[count + 1])) {
+        // if something isn't an option
         //console.log('something is not an option');
         return {name: currentInput.name, value: inputList[count + 1], required: currentInput.required, flag: currentInput.flag};
       } else {
@@ -82,6 +124,10 @@ class vargs {
     }
     throw Error;
   }
+  
+  parseCompound() {
+    console.log('TODO: unimplemented');
+  };
   
   parse(inputList) {
     //console.log('start parse');
@@ -125,99 +171,6 @@ class vargs {
     return result;
   }
   
-  
-  // TODO
-  set addCompound({name, required=true, commands=new vargs()}) {
-    let newCompoundArg = Object.create(null);
-    newCompoundArg.name = name;
-    newCompoundArg.required = required;
-    newCompoundArg.commands = commands;
-    this[name] = newCompoundArg;
-  }
-  
-  get compounds() {
-    let result = [];
-    Object.getOwnPropertyNames(this).forEach(prop => {
-      if (this[prop].commands !== undefined) {
-        result.push(this[prop]);
-      }
-    });
-    return result;
-  }
-  
-  get comCount() {
-    return this.compounds.length;
-  }
-  
-  parseCompound() {};
-  
-  set delArg(name) {
-    delete this[name];
-  }
-  
-  get posCount() {
-    return this.positionals.length;
-  }
-  
-  get optCount() {
-    return this.options.length;
-  }
-  
-  get reqCount() {
-    return this.required.length;
-  }
-  
-  get positionals() {
-    let result = [];
-    Object.getOwnPropertyNames(this).forEach(prop => {
-      if (this[prop] instanceof Positional) {
-        result.push(this[prop]);
-      }
-    });
-    return result;
-  }
-  
-  get options() {
-    let result = [];
-    Object.getOwnPropertyNames(this).forEach(prop => {
-      if (this[prop] instanceof Option) {
-        result.push(this[prop]);
-      }
-    });
-    return result;
-  }
-  
-  get required() {
-    let result = [];
-    Object.getOwnPropertyNames(this).forEach(prop => {
-      if (this[prop].required === true) {
-        result.push(this[prop]);
-      }
-    });
-    return result;
-  }
-  
-  get flags() {
-    let result = [];
-    Object.getOwnPropertyNames(this).forEach(prop => {
-      if (this[prop].flag === true) {
-        result.push(this[prop]);
-      }
-    });
-    return result;
-  }
-
-  // unused
-  //get values() {
-  //  let result = [];
-  //  Object.getOwnPropertyNames(this).forEach(prop => {
-  //    if (this[prop].value !== null) {
-  //      result.push(this[prop].value);
-  //    }
-  //  });
-  //  return result;
-  //}
-
   verifyOption(input) {
     for (let i = 0; i < this.optCount; i++) {
       if (this.options[i].name instanceof Array) {
@@ -268,6 +221,7 @@ class vargs {
     }
     return false;
   }
+  
 }
 
 module.exports = vargs;

@@ -4,61 +4,12 @@
    when ready use parseArgs with an appropriate argument to interpret a list as arguments.
 */
 
-function inNestedObject(target, sequence) {
-  for (let i = 0; i < sequence.length; i++) {
-    if (target in sequence[i]) {
-      return true;
-    } else {
-      continue;
-    }
-  }
-  return false
-}
-
-function cleanString(string, dirt) {
-  return string.slice(string.lastIndexOf(dirt) + 1);
-}
-
-function getOptionName(name) {
-  if (name instanceof Array) {
-    console.log(name);
-    return cleanString(name.slice(-1)[0], '-');
-  } else {
-    return cleanString(name, '-');
-  }
-}
-
-class Arg {
-  constructor(name, value, required) {
-    this.name = name;
-    this.value = value;
-    this.required = required;
-  }
-}
-
-class Positional extends Arg {
-  constructor(name, value, required, position) {
-    super(name, value, required);
-    this.position = position;
-  }
-}
-
-class Option extends Arg {
-  constructor(name, value, required, flag) {
-    super(name, value, required);
-    this.flag = flag;
-  } 
-}
+const {Positional, Option} = require('./lib/class.js');
+const helperlib = require('./lib/helper.js');
 
 class vargs {
   constructor(help = '') {
     this.help = help;
-    //if (args !== undefined) {
-    //  for (let i = 0; i < args.length; i++) {
-    //    let {name, positional, value, required, flag} = args[i];
-    //    this.addArg(name, positional, value, required, flag);
-    //  }
-    //}
   }
   
   // TODO
@@ -70,7 +21,7 @@ class vargs {
     //newPositional.required = required;
     //newPositional.position = position;
     //if (name instanceof Array) {
-    //  this[getOptionName(name)] = newPositional;
+    //  this[helperlib.getOptionName(name)] = newPositional;
     //} else {
     this[name] = newPositional;
     //}
@@ -94,7 +45,7 @@ class vargs {
     throw Error;
   }
   
-  set addOption({name, value=null, required=true, flag=false}) {
+  set addOption({name, value=null, required=false, flag=false}) {
     let newOption = new Option(name, value, required, flag);
     //let newOption = Object.create(null);
     //newOption.name = name;
@@ -102,7 +53,7 @@ class vargs {
     //newOption.required = required;
     //newOption.flag = flag;
     //console.log('adding option', newOption);
-    this[getOptionName(name)] = newOption;
+    this[helperlib.getOptionName(name)] = newOption;
   }
   
   parseOption(currentInput, inputList, count) {
@@ -133,7 +84,7 @@ class vargs {
   }
   
   parse(inputList) {
-    console.log('start parse');
+    //console.log('start parse');
     let arg;
     let currentInput;
     let detectedPositional;
@@ -255,16 +206,17 @@ class vargs {
     });
     return result;
   }
-  
-  get values() {
-    let result = [];
-    Object.getOwnPropertyNames(this).forEach(prop => {
-      if (this[prop].value !== null) {
-        result.push(this[prop]);
-      }
-    });
-    return result;
-  }
+
+  // unused
+  //get values() {
+  //  let result = [];
+  //  Object.getOwnPropertyNames(this).forEach(prop => {
+  //    if (this[prop].value !== null) {
+  //      result.push(this[prop].value);
+  //    }
+  //  });
+  //  return result;
+  //}
 
   verifyOption(input) {
     for (let i = 0; i < this.optCount; i++) {
@@ -292,7 +244,7 @@ class vargs {
     // check required arguments are available
     let count = 0;
     for (let i = 0; i < this.reqCount; i++) {
-      if (Object.keys(input).includes(this.required[i].name) || Object.keys(input).includes(getOptionName(this.required[i].name))) {
+      if (Object.keys(input).includes(this.required[i].name) || Object.keys(input).includes(helperlib.getOptionName(this.required[i].name))) {
         count += 1;
       }
     }
@@ -307,7 +259,7 @@ class vargs {
     // check that a positional argument's value is not identical to an option's value
     let optionName;
     for (let i = 0; i < this.optCount; i++) {
-      optionName = getOptionName(this.options[i].name);
+      optionName = helperlib.getOptionName(this.options[i].name);
       if (Object.keys(input).includes(optionName)) {
         if (input[optionName].value === value) {
           return true;
@@ -318,17 +270,4 @@ class vargs {
   }
 }
 
-let a;
-
-a = new vargs();
-a.addPositional = {name: 'drink', positional: true};
-a.addPositional = {name: 'garnish', required: false};
-a.addOption = {name: ['-a', '--additions']};
-
-console.log('positionals: ', a.positionals);
-console.log('options: ', a.options);
-console.log('required: ', a.required);
-
-console.log(a);
-let b = a.parse(process.argv.slice(2));
-console.log('parse: ', b);
+module.exports = vargs;

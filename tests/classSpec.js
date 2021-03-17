@@ -107,4 +107,30 @@ describe('Getters', function() {
   });
 });
 
+describe('Methods', function() {
+  let args;
+  let expectation;
+  beforeAll(function() {
+    args = new vargs();
+    args.addPositional = {name: 'drink', value: 'bubbletea'};
+    args.addPositional = {name: 'garnish', value: 'lemon', required: false};
+    args.addOption = {name: ['-a', '--additions']};
+    args.addOption = {name: ['-l', '--large'], value: 'XXL', flag: true};
+  });
+  
+  it('can return arguments as an object', function() {
+    expectation = {drink: 'bubbletea', garnish: 'lemon', additions: null, large: 'XXL'};
+    expect(args.toObject()).toEqual(expectation);
+  });
+  
+  xit('can return arguments as a map', function() {
+    expectation = Map();
+    expectation.set('drink', 'bubbletea');
+    expectation.set('garnish', 'lemon');
+    expectation.set('additions', null);
+    expectation.set('large', 'XXL');
+    expect(args.toMap()).toEqual(expectation);
+  })
+});
+
 

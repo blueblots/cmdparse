@@ -75,6 +75,30 @@ class vargs {
   //  return result;
   //}
   
+  toObject() {
+    let result = {};
+    this.positionals.forEach(pos => {
+      result[helperlib.getOptionName(pos.name)] = pos.value;
+    });
+    this.options.forEach(opt => {
+      result[helperlib.getOptionName(opt.name)] = opt.value;
+    });
+    // TODO compounds
+    return result;
+  }
+  
+  toMap() {
+    let result = Map();
+    this.positionals.forEach(pos => {
+      result.set(helperlib.getOptionName(pos.name), pos.value);
+    });
+    this.options.forEach(opt => {
+      result.set(helperlib.getOptionName(opt.name), opt.value);
+    });
+    // TODO compounds
+    return result;
+  }
+  
   parsePositional(currentInput, positional, result) {
     //console.log('found positional');
     //console.log(currentInput, positional, result);

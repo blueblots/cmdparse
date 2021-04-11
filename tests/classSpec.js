@@ -107,9 +107,9 @@ describe('Methods', function() {
   
   beforeAll(function() {
     args = new vargs();
-    args.addPositional = {name: 'drink', value: 'bubbletea'};
+    args.addPositional = {name: 'drink', value: 'bubbletea', help: 'choose a drink'};
     args.addPositional = {name: 'garnish', value: 'lemon', required: false};
-    args.addOption = {name: ['-a', '--additions']};
+    args.addOption = {name: ['-a', '--additions'], help: 'extras'};
     args.addOption = {name: ['-l', '--large'], value: 'XXL', flag: true};
   });
   
@@ -127,17 +127,27 @@ describe('Methods', function() {
     expect(args.toMap()).toEqual(expectation);
   });
   
-  // TODO add tests for verification functions
-  xit('can correctly verify a positional', function() {
-      
+  // tests for verification functions
+  it('can correctly verify a positional', function() {
+    expectation = new Positional(name='drink', value='bubbletea', required=true, help='choose a drink', position=0);
+    expect(args.verifyPositional(0)).toEqual(expectation);
+    expect(args.verifyPositional(5)).toEqual(false);
   });
   
-  xit('can correctly verify an option', function() {
-      
+  it('can correctly verify an option', function() {
+    expectation = new Option(name=['-a', '--additions'], value=null, required=false, help='extras', flag=false);
+    expect(args.verifyOption('-a')).toEqual(expectation);
+    expect(args.verifyOption('--additions')).toEqual(expectation);
+    expect(args.verifyOption('chocolate')).toEqual(false);
   });
   
-  xit('can correctly verify required arguments', function() {
-      
+  it('can correctly verify required arguments', function() {
+    let testVargs = new vargs();
+    testVargs.addPositional = {name: 'drink', value: 'bubbletea', help: 'choose a drink'};
+    let badVargs = new vargs();
+    badVargs.addPositional = {name: 'booze', value: 'bubbletea', help: 'choose a drink'};
+    expect(args.verifyRequired(testVargs)).toEqual(true);
+    expect(args.verifyRequired(badVargs)).toEqual(false);
   });
 });
 

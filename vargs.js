@@ -228,9 +228,11 @@ class vargs {
   }
   
   verifyRequired(input) {
-    // check required arguments are available
+    // Check that required arguments are available
     let count = 0;
     for (let i = 0; i < this.required.length; i++) {
+      /* if the new vargs has a property with the same name
+       * as one in this.required, increase the count of required arguments. */
       if (Object.keys(input).includes(this.required[i].name) || Object.keys(input).includes(helperlib.getOptionName(this.required[i].name))) {
         count += 1;
       }
@@ -248,7 +250,6 @@ class vargs {
     for (let i = 0; i < this.positionals.length; i++) {
       if (this.positionals[i].value !== null) {
         if (input.positionals.includes(this.positionals[i]) === false) {
-          //console.log('found missing positional', this.positionals[i]);
           input.addPositional = {...this.positionals[i]};
         }
       }
@@ -260,7 +261,6 @@ class vargs {
     for (let i = 0; i < this.options.length; i++) {
       if (this.options[i].value !== null && this.options[i].flag === false) {
         if (input.options.includes(this.options[i]) === false) {
-          //console.log('found missing option', this.options[i]);
           input.addOption = {...this.options[i]};
         }
       }

@@ -10,7 +10,7 @@ class vargs {
     this.__description = description;
   }
   
-  set addPositional({name, value=null, required=true, help='', position=this.posCount}) {
+  set addPositional({name, value=null, required=true, help='', position=this.positionals.length}) {
     let newPositional = new Positional(name, value, required, help, position);
     this[name] = newPositional;
   }
@@ -28,24 +28,7 @@ class vargs {
   set delArg(name) {
     delete this[name];
   }
-  
-  get posCount() {
-    return this.positionals.length;
-  }
-  
-  get optCount() {
-    return this.options.length;
-  }
-  
-  get reqCount() {
-    return this.required.length;
-  }
-  
-  get comCount() {
-    //return this.compounds.length;
-    console.log('TODO: unimplemented');
-  }
-  
+
   get compounds() {
     console.log('TODO: unimplemented');
   }
@@ -65,17 +48,6 @@ class vargs {
   get flags() {
     return helperlib.getPropertiesByProperty(this, 'flag');
   }
-
-  // unused
-  //get values() {
-  //  let result = [];
-  //  Object.getOwnPropertyNames(this).forEach(prop => {
-  //    if (this[prop].value !== null) {
-  //      result.push(this[prop].value);
-  //    }
-  //  });
-  //  return result;
-  //}
   
   get getShortHelp() {
     let result = `\nUSAGE: ${this.__name} `;
@@ -234,7 +206,7 @@ class vargs {
   }
   
   verifyOption(input) {
-    for (let i = 0; i < this.optCount; i++) {
+    for (let i = 0; i < this.options.length; i++) {
       if (this.options[i].name instanceof Array) {
         if (this.options[i].name.includes(input)) {
           return this.options[i];
@@ -247,7 +219,7 @@ class vargs {
   }
   
   verifyPositional(inputPosition) {
-    for (let i = 0; i < this.posCount; i++) {
+    for (let i = 0; i < this.positionals.length; i++) {
       if (this.positionals[i].position === inputPosition) {
         return this.positionals[i];
       }
@@ -258,12 +230,12 @@ class vargs {
   verifyRequired(input) {
     // check required arguments are available
     let count = 0;
-    for (let i = 0; i < this.reqCount; i++) {
+    for (let i = 0; i < this.required.length; i++) {
       if (Object.keys(input).includes(this.required[i].name) || Object.keys(input).includes(helperlib.getOptionName(this.required[i].name))) {
         count += 1;
       }
     }
-    if (count !== this.reqCount) {
+    if (count !== this.required.length) {
       return false;
     } else {
       return true;
@@ -301,7 +273,7 @@ class vargs {
   isOptionValue(input, value) {
     // check that a positional argument's value is not identical to an option's value
     let optionName;
-    for (let i = 0; i < this.optCount; i++) {
+    for (let i = 0; i < this.options.length; i++) {
       optionName = helperlib.getOptionName(this.options[i].name);
       if (Object.keys(input).includes(optionName)) {
         if (input[optionName].value === value) {

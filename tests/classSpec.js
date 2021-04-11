@@ -68,18 +68,22 @@ describe('Getters', function() {
   
   it('can get positionals', function() {
     expect(args.positionals).toEqual(positionals);
+    expect(args.positionals.length).toEqual(positionals.length);
   });
   
   it('can get options', function() {
     expect(args.options).toEqual(options);
+    expect(args.options.length).toEqual(options.length);
   });     
           
   it('can get requireds', function() {
     expect(args.required).toEqual(requireds);
+    expect(args.required.length).toEqual(requireds.length);
   });
   
   it('can get flags', function() {
     expect(args.flags).toEqual(flags);
+    expect(args.flags.length).toEqual(flags.length);
   });
   
   it('can get help', function() {
@@ -91,25 +95,6 @@ describe('Getters', function() {
     expect(args.compounds).toEqual(compounds);
   });
   
-  xit('can get values', function() {
-    expect(args.values).toEqual(values);
-  });
-  
-  it('can get positional count', function() {
-    expect(args.posCount).toEqual(positionals.length);
-  });
-  
-  it('can get options count', function() {
-    expect(args.optCount).toEqual(options.length);
-  });
-  
-  it('can get required count', function() {
-    expect(args.reqCount).toEqual(requireds.length);
-  });
-  
-  xit('can get compounds count', function() {
-    expect(args.comCount).toEqual(compounds.length);
-  });
 });
 
 describe('Methods', function() {
@@ -140,7 +125,20 @@ describe('Methods', function() {
     expectation.set('additions', null);
     expectation.set('large', 'XXL');
     expect(args.toMap()).toEqual(expectation);
-  })
+  });
+  
+  // TODO add tests for verification functions
+  xit('can correctly verify a positional', function() {
+      
+  });
+  
+  xit('can correctly verify an option', function() {
+      
+  });
+  
+  xit('can correctly verify required arguments', function() {
+      
+  });
 });
 
 

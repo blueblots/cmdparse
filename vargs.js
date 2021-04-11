@@ -1,20 +1,22 @@
 // vargs - minimal JavaScript argument parser.
+const path = require('path');
 
 const {Positional, Option} = require('./lib/class.js');
 const helperlib = require('./lib/helper.js');
 
 class vargs {
-  constructor(help = '') {
-    this.help = help;
+  constructor(name = `${path.basename(__filename)}`, description = '') {
+    this.__name = name;
+    this.__description = description;
   }
   
-  set addPositional({name, value=null, required=true, position=this.posCount}) {
-    let newPositional = new Positional(name, value, required, position);
+  set addPositional({name, value=null, required=true, help='', position=this.posCount}) {
+    let newPositional = new Positional(name, value, required, help, position);
     this[name] = newPositional;
   }
   
-  set addOption({name, value=null, required=false, flag=false}) {
-    let newOption = new Option(name, value, required, flag);
+  set addOption({name, value=null, required=false, help='', flag=false}) {
+    let newOption = new Option(name, value, required, help, flag);
     this[helperlib.getOptionName(name)] = newOption;
   }
   
@@ -75,6 +77,41 @@ class vargs {
   //  return result;
   //}
   
+  get getShortHelp() {
+    let result = `\nUSAGE: ${this.__name} `;
+    this.positionals.forEach(pos => {
+      if (pos.required === false) {
+        result += `[ ${pos.name} ] `
+      }
+      else {
+        result += `${pos.name} `;
+      }
+    });
+    this.options.forEach(opt => {
+      if (opt.required === false) {
+        result += `[ ${opt.name} ] `
+      }
+      else {
+        result += `${opt.name} `;
+      }
+    });
+    return result;
+  }
+  
+  get getLongHelp() {
+    let result = `\n${this.__name} - ${this.__description}\n${this.getShortHelp}\n\n`;
+    this.positionals.forEach(pos => {
+      result += pos.help.toString() + '\n';
+    });
+    if (this.options.length > 0) {
+      result += '\nOPTIONS:\n';
+      this.options.forEach(opt => {
+        result += opt.help.toString() + '\n';
+      });
+    }
+    return result;
+  }
+  
   toObject() {
     let result = {};
     this.positionals.forEach(pos => {
@@ -88,7 +125,7 @@ class vargs {
   }
   
   toMap() {
-    let result = Map();
+    let result = new Map();
     this.positionals.forEach(pos => {
       result.set(helperlib.getOptionName(pos.name), pos.value);
     });
@@ -192,6 +229,7 @@ class vargs {
     if (this.verifyRequired(result) === false) {
       return false;
     }
+    this.setDefaultValues(result);
     return result;
   }
   
@@ -229,6 +267,34 @@ class vargs {
       return false;
     } else {
       return true;
+    }
+  }
+  
+  setDefaultValues(input) {
+    // Set any default values that are needed in input vargs
+    // Check positional defaults
+    for (let i = 0; i < this.positionals.length; i++) {
+      if (this.positionals[i].value !== null) {
+        if (input.positionals.includes(this.positionals[i]) === false) {
+          //console.log('found missing positional', this.positionals[i]);
+          input.addPositional = {...this.positionals[i]};
+        }
+      }
+      else {
+        continue;
+      }
+    }
+    // Check option defaults
+    for (let i = 0; i < this.options.length; i++) {
+      if (this.options[i].value !== null && this.options[i].flag === false) {
+        if (input.options.includes(this.options[i]) === false) {
+          //console.log('found missing option', this.options[i]);
+          input.addOption = {...this.options[i]};
+        }
+      }
+      else {
+        continue
+      }
     }
   }
   

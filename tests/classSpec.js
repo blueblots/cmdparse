@@ -47,22 +47,22 @@ describe('Getters', function() {
   //let values;
   //let compounds;
   beforeAll(function() {
-    args = new vargs();
-    args.addPositional = {name: 'drink', value: 'bubbletea'};
-    args.addPositional = {name: 'garnish', value: 'lemon', required: false};
-    args.addOption = {name: ['-a', '--additions']};
-    args.addOption = {name: ['-l', '--large'], value: 'XXL', flag: true};
+    args = new vargs('vargs', 'argument parser');
+    args.addPositional = {name: 'drink', value: 'bubbletea', help: 'choose a drink'};
+    args.addPositional = {name: 'garnish', value: 'lemon', help: 'choose a garnish', required: false};
+    args.addOption = {name: ['-a', '--additions'], help: 'extras'};
+    args.addOption = {name: ['-l', '--large'], value: 'XXL', help: 'large size', flag: true};
       
     positionals = [
-      new Positional(name='drink', value='bubbletea', required=true, position=0),
-      new Positional(name='garnish', value='lemon', required=false, position=1)
+      new Positional(name='drink', value='bubbletea', required=true, help='choose a drink', position=0),
+      new Positional(name='garnish', value='lemon', required=false, help='choose a garnish', position=1)
     ];
     options = [
-      new Option(name=['-a', '--additions'], value=null, required=false, flag=false),
-      new Option(name=['-l', '--large'], value='XXL', required=false, flag=true)
+      new Option(name=['-a', '--additions'], value=null, required=false, help='extras', flag=false),
+      new Option(name=['-l', '--large'], value='XXL', required=false, help='large size', flag=true)
     ];
-    requireds = [new Positional(name='drink', value='bubbletea', required=true, position=0)];
-    flags = [new Option(name=['-l', '--large'], value='XXL', required=false, flag=true)];
+    requireds = [new Positional(name='drink', value='bubbletea', required=true, help='choose a drink', position=0)];
+    flags = [new Option(name=['-l', '--large'], value='XXL', required=false, help='large size', flag=true)];
     //values = ['bubbletea', 'lemon', 'XXL'];
   });
   
@@ -81,7 +81,12 @@ describe('Getters', function() {
   it('can get flags', function() {
     expect(args.flags).toEqual(flags);
   });
-          
+  
+  it('can get help', function() {
+    console.log('\nshort help: ', args.getShortHelp);
+    console.log('\nlong help: ', args.getLongHelp);
+  });
+
   xit('can get compounds', function() {
     expect(args.compounds).toEqual(compounds);
   });
@@ -110,6 +115,11 @@ describe('Getters', function() {
 describe('Methods', function() {
   let args;
   let expectation;
+  
+  beforeEach(function() {
+    expectation = undefined;
+  })
+  
   beforeAll(function() {
     args = new vargs();
     args.addPositional = {name: 'drink', value: 'bubbletea'};
@@ -123,8 +133,8 @@ describe('Methods', function() {
     expect(args.toObject()).toEqual(expectation);
   });
   
-  xit('can return arguments as a map', function() {
-    expectation = Map();
+  it('can return arguments as a map', function() {
+    expectation = new Map();
     expectation.set('drink', 'bubbletea');
     expectation.set('garnish', 'lemon');
     expectation.set('additions', null);

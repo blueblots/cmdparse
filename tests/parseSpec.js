@@ -43,7 +43,7 @@ describe('Parser', function() {
   it('can parse option arguments and flags', function() {
     args.addOption = {name: ['-a', '--additions']};
     args.addOption = {name: ['-l', '--large'], value: 'XXL', flag: true};
-    args.addOption = {name: '--flavor', value: 'sweet'};
+    args.addOption = {name: '--flavor', value: 'sweet', flag: true};
     result = args.parse(argString);
     // check if parse succeeded
     expect(result).toBeInstanceOf(vargs);
@@ -66,7 +66,7 @@ describe('Parser', function() {
     expect(result.flavor.name).toEqual('--flavor');
     expect(result.flavor.value).toEqual('sweet');
     expect(result.flavor.required).toEqual(false);
-    expect(result.flavor.flag).toEqual(false);
+    expect(result.flavor.flag).toEqual(true);
     // check that bogus options and positionals are not included
     expect(result.bubbletea).not.toBeDefined();
     expect(result.lemon).not.toBeDefined();
@@ -83,7 +83,7 @@ describe('Parser', function() {
 });
 
 //TODO
-xdescribe('Default values', function() {
+describe('Default values', function() {
   let args;
   let result;
   let argString;
@@ -92,12 +92,13 @@ xdescribe('Default values', function() {
     args = new vargs();
     argString = null;
   });
-  //TODO
+  
   it('are applied to positional arguments when they are omitted', function() {
     args.addPositional = {name: 'drink'};
     args.addPositional = {name: 'garnish', value: 'coconut', required: false};
-    argString = ['bubbletea', '-l', '-X'];
+    argString = ['bubbletea'];
     result = args.parse(argString);
+    //console.log('pos defaults: ', result);
     // check if parse succeeded
     expect(result).toBeInstanceOf(vargs);
     // check if arguments are defined and instantiatiated
@@ -106,11 +107,12 @@ xdescribe('Default values', function() {
     // check if arguments' properties are correct
     expect(result.garnish.value).toEqual('coconut');
   });
-  //TODO
+  
   it('are applied to option arguments when they are omitted', function() {
     args.addOption = {name: ['-a', '--additions'], value: 'banana'};
     argString = ['bubbletea', '-l'];
     result = args.parse(argString);
+    //console.log('opt defaults: ', result);
     expect(result).toBeInstanceOf(vargs);
     // check if arguments are defined and instantiatiated
     expect(result.additions).toBeDefined();

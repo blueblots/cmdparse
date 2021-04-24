@@ -136,15 +136,26 @@ describe('Multiple value options:', function() {
     /* one or more: if the option has this and a default value,
      * the value will be the default value. */
     args.addOption = {name: ['-a', '--additions'], nargs: '+'};
-    args.addOption = {name: ['-m', '--more'], nargs: '+'};
-    argString = ['bubbletea', '-a', 'coconut', 'lychee', 'cherry', '-m'];
+    args.addOption = {name: ['-m', '--more'], value: 'wont be applied', nargs: '+'};
+    args.addOption = {name: ['-s', '--somemore'], value: 'will be applied', nargs: '+'};
+    args.addOption = {name: ['-n', '--nomore'], nargs: '+'};
+    argString = ['bubbletea', '-a', 'coconut', 'lychee', 'cherry', '-n', '-s', '--more', 'berries'];
     result = args.parse(argString);
     expect(result).toBeInstanceOf(vargs);
+    
     expect(result.additions).toBeDefined();
+    expect(result.more).toBeDefined();
+    expect(result.somemore).toBeDefined();
+    expect(result.nomore).not.toBeDefined();
+
+    
     expect(result.additions).toBeInstanceOf(Option);
-    expect(result.more).not.toBeDefined();
+    expect(result.more).toBeInstanceOf(Option);
+    expect(result.somemore).toBeInstanceOf(Option);
     // check that value is an array, and contains the values
     expect(result.additions.value).toEqual(['coconut', 'lychee', 'cherry']);
+    expect(result.more.value).toEqual(['berries']);
+    expect(result.somemore.value).toEqual('will be applied');
   });
 
   it('\'*\' (zero or more) are parsed correctly', function() {

@@ -129,24 +129,27 @@ class vargs {
   
   parseOption(currentInput, inputList, count) {
     /* Parse currentInput, return an option if input is an option, otherwise false. */
-    //console.log('found option');
+    //console.log('found option', inputList, count);
     if (currentInput.flag === true) {
       /* if arg is a switch */
-      //console.log('option is flag');
+      //console.log('option is flag', currentInput);
       return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag};
     }
+    //console.log(inputList[count + 1]);
     if (inputList[count + 1] === undefined) {
       /* if theres nothing in front */
-      //console.log('nothing in front');
+      //console.log('nothing in front', currentInput, inputList);
       if (currentInput.value === null) {
         /* if arg has no default */
         //console.log('no default value');
         return false;
-      } else {
-        //console.log('using default value');
+      }
+      else {
+        //console.log('using default value', currentInput.name);
         return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag, nargs: currentInput.nargs};
       }
-    } else {
+    }
+    else {
       /* something is in front */
       //console.log('something in front');
       if (this.verifyOption(inputList[count + 1]) === false) {
@@ -159,10 +162,16 @@ class vargs {
             /* if one or more values are accepted */
             for (let i = 0; i < remainingInput.length; i++) {
               if (this.verifyOption(remainingInput[i]) === false) {
+                //console.log(currentInput.name, 'found value:', remainingInput[i]);
                 argValue.push(remainingInput[i]);
+              }
+              else {
+                //console.log(currentInput.name, 'breaking');
+                break;
               }
             }
             if (argValue.length === 0) {
+              //console.log(currentInput.name, 'argValue is 0');
               return false;
             }
           }
@@ -172,6 +181,9 @@ class vargs {
               if (this.verifyOption(remainingInput[i]) === false) {
                 argValue.push(remainingInput[i]);
               }
+              else {
+                break;
+              }
             }
           }
           else if (Number.isInteger(parseInt(currentInput.nargs)) !== false) {
@@ -179,6 +191,9 @@ class vargs {
             for (let i = 0; i < parseInt(currentInput.nargs); i++) {
               if (this.verifyOption(remainingInput[i]) === false) {
                 argValue.push(remainingInput[i]);
+              }
+              else {
+                break;
               }
             }
           }
@@ -192,6 +207,7 @@ class vargs {
         return {name: currentInput.name, value: argValue, required: currentInput.required, flag: currentInput.flag, nargs: currentInput.nargs};
       }
       else {
+        //console.log('falling out');
         return false;
       }
     }
@@ -204,7 +220,7 @@ class vargs {
   
   parse(inputList) {
     /* Parse a command string */
-    //console.log('start parse');
+    //console.log('start parse', inputList);
     let arg;
     let currentInput;
     let detectedPositional;
@@ -301,7 +317,7 @@ class vargs {
     /* Check option defaults */
     for (let i = 0; i < this.options.length; i++) {
       if (this.options[i].value !== null && this.options[i].flag === false) {
-        if (input.options.includes(this.options[i]) === false) {
+        if (input[helperlib.getOptionName(this.options[i].name)] === undefined) {
           input.addOption = {...this.options[i]};
         }
       }

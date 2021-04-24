@@ -122,8 +122,7 @@ describe('Default values', function() {
   });
 });
 
-//TODO
-xdescribe('Multiple value options:', function() {
+describe('Multiple value options:', function() {
   let args;
   let result;
   let argString;
@@ -132,12 +131,12 @@ xdescribe('Multiple value options:', function() {
     args = new vargs();
     argString = null;
   });
-  //TODO
+  
   it('\'+\' (one or more) are parsed correctly', function() {
     /* one or more: if the option has this and a default value,
-     * the value should be ignored. */
+     * the value will be the default value. */
     args.addOption = {name: ['-a', '--additions'], nargs: '+'};
-    args.addOption = {name: ['-m', '--more'], value: 'wont be applied', nargs: '+'};
+    args.addOption = {name: ['-m', '--more'], nargs: '+'};
     argString = ['bubbletea', '-a', 'coconut', 'lychee', 'cherry', '-m'];
     result = args.parse(argString);
     expect(result).toBeInstanceOf(vargs);
@@ -147,7 +146,7 @@ xdescribe('Multiple value options:', function() {
     // check that value is an array, and contains the values
     expect(result.additions.value).toEqual(['coconut', 'lychee', 'cherry']);
   });
-  //TODO
+
   it('\'*\' (zero or more) are parsed correctly', function() {
     /* zero or more: if the option has zero args but a default
      * value, apply the default value. */
@@ -164,7 +163,7 @@ xdescribe('Multiple value options:', function() {
     expect(result.additions.value).toEqual(['coconut', 'lychee', 'cherry']);
     expect(result.more.value).toEqual('will be applied');
   });
-  //TODO
+
   it('\'n\' max length is respected', function() {
     args.addOption = {name: ['-a', '--additions'], nargs: '5'};
     argString = ['bubbletea', '-a', 'coconut', 'lychee', 'cherry', 'apple', 'mango', 'pineapple'];

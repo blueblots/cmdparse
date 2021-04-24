@@ -58,11 +58,11 @@ describe('Getters', function() {
       new Positional(name='garnish', value='lemon', required=false, help='choose a garnish', position=1)
     ];
     options = [
-      new Option(name=['-a', '--additions'], value=null, required=false, help='extras', flag=false),
-      new Option(name=['-l', '--large'], value='XXL', required=false, help='large size', flag=true)
+      new Option(name=['-a', '--additions'], value=null, required=false, help='extras', flag=false, nargs=false),
+      new Option(name=['-l', '--large'], value='XXL', required=false, help='large size', flag=true, nargs=false)
     ];
     requireds = [new Positional(name='drink', value='bubbletea', required=true, help='choose a drink', position=0)];
-    flags = [new Option(name=['-l', '--large'], value='XXL', required=false, help='large size', flag=true)];
+    flags = [new Option(name=['-l', '--large'], value='XXL', required=false, help='large size', flag=true, nargs=false)];
     //values = ['bubbletea', 'lemon', 'XXL'];
   });
   
@@ -135,7 +135,7 @@ describe('Methods', function() {
   });
   
   it('can correctly verify an option', function() {
-    expectation = new Option(name=['-a', '--additions'], value=null, required=false, help='extras', flag=false);
+    expectation = new Option(name=['-a', '--additions'], value=null, required=false, help='extras', flag=false, nargs=false);
     expect(args.verifyOption('-a')).toEqual(expectation);
     expect(args.verifyOption('--additions')).toEqual(expectation);
     expect(args.verifyOption('chocolate')).toEqual(false);

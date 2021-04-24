@@ -15,8 +15,8 @@ class vargs {
     this[name] = newPositional;
   }
   
-  set addOption({name, value=null, required=false, help='', flag=false}) {
-    let newOption = new Option(name, value, required, help, flag);
+  set addOption({name, value=null, required=false, help='', flag=false, nargs=false}) {
+    let newOption = new Option(name, value, required, help, flag, nargs);
     this[helperlib.getOptionName(name)] = newOption;
   }
   
@@ -109,6 +109,7 @@ class vargs {
   }
   
   parsePositional(currentInput, positional, result) {
+    /* Parse a positional argument, return the argument if its actually a positional, otherwise false. */
     //console.log('found positional');
     //console.log(currentInput, positional, result);
     if (!this.verifyOption(currentInput)) {
@@ -127,31 +128,70 @@ class vargs {
   }
   
   parseOption(currentInput, inputList, count) {
+    /* Parse currentInput, return an option if input is an option, otherwise false. */
     //console.log('found option');
     if (currentInput.flag === true) {
-      // if arg is a switch
+      /* if arg is a switch */
       //console.log('option is flag');
       return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag};
     }
     if (inputList[count + 1] === undefined) {
-      // if theres nothing in front
+      /* if theres nothing in front */
       //console.log('nothing in front');
       if (currentInput.value === null) {
-        // if arg has no default
+        /* if arg has no default */
         //console.log('no default value');
         return false;
       } else {
         //console.log('using default value');
-        return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag};
+        return {name: currentInput.name, value: currentInput.value, required: currentInput.required, flag: currentInput.flag, nargs: currentInput.nargs};
       }
     } else {
-      // something is in front
+      /* something is in front */
       //console.log('something in front');
-      if (!this.verifyOption(inputList[count + 1])) {
-        // if something isn't an option
-        //console.log('something is not an option');
-        return {name: currentInput.name, value: inputList[count + 1], required: currentInput.required, flag: currentInput.flag};
-      } else {
+      if (this.verifyOption(inputList[count + 1]) === false) {
+        let argValue;
+        if (currentInput.nargs !== false) {
+          //console.log('option: nargs is', currentInput.nargs);
+          argValue = [];
+          let remainingInput = inputList.slice(count + 1);
+          if (currentInput.nargs === '+') {
+            /* if one or more values are accepted */
+            for (let i = 0; i < remainingInput.length; i++) {
+              if (this.verifyOption(remainingInput[i]) === false) {
+                argValue.push(remainingInput[i]);
+              }
+            }
+            if (argValue.length === 0) {
+              return false;
+            }
+          }
+          else if (currentInput.nargs === '*') {
+            /* if zero or more values are accepted */
+            for (let i = 0; i < remainingInput.length; i++) {
+              if (this.verifyOption(remainingInput[i]) === false) {
+                argValue.push(remainingInput[i]);
+              }
+            }
+          }
+          else if (Number.isInteger(parseInt(currentInput.nargs)) !== false) {
+            /* if a certain number of values is accepted */
+            for (let i = 0; i < parseInt(currentInput.nargs); i++) {
+              if (this.verifyOption(remainingInput[i]) === false) {
+                argValue.push(remainingInput[i]);
+              }
+            }
+          }
+        }
+        else {
+          /* if something isn't an option */
+          //console.log('something is not an option');
+          argValue = inputList[count + 1];
+        }
+        //console.log('option result:', {name: currentInput.name, value: argValue, required: currentInput.required, flag: currentInput.flag, nargs: currentInput.nargs});
+        return {name: currentInput.name, value: argValue, required: currentInput.required, flag: currentInput.flag, nargs: currentInput.nargs};
+      }
+      else {
         return false;
       }
     }
@@ -163,6 +203,7 @@ class vargs {
   };
   
   parse(inputList) {
+    /* Parse a command string */
     //console.log('start parse');
     let arg;
     let currentInput;
@@ -228,7 +269,7 @@ class vargs {
   }
   
   verifyRequired(input) {
-    // Check that required arguments are available
+    /* Check that required arguments are available */
     let count = 0;
     for (let i = 0; i < this.required.length; i++) {
       /* if the new vargs has a property with the same name
@@ -245,8 +286,8 @@ class vargs {
   }
   
   setDefaultValues(input) {
-    // Set any default values that are needed in input vargs
-    // Check positional defaults
+    /* Set any default values that are needed in input vargs */
+    /* Check positional defaults */
     for (let i = 0; i < this.positionals.length; i++) {
       if (this.positionals[i].value !== null) {
         if (input.positionals.includes(this.positionals[i]) === false) {
@@ -257,7 +298,7 @@ class vargs {
         continue;
       }
     }
-    // Check option defaults
+    /* Check option defaults */
     for (let i = 0; i < this.options.length; i++) {
       if (this.options[i].value !== null && this.options[i].flag === false) {
         if (input.options.includes(this.options[i]) === false) {
@@ -271,7 +312,7 @@ class vargs {
   }
   
   isOptionValue(input, value) {
-    // check that a positional argument's value is not identical to an option's value
+    /* check that a positional argument's value is not identical to an option's value */
     let optionName;
     for (let i = 0; i < this.options.length; i++) {
       optionName = helperlib.getOptionName(this.options[i].name);

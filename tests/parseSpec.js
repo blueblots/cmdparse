@@ -1,4 +1,4 @@
-const vargs = require('../vargs.js');
+const cmdparse = require('../index.js');
 const {Positional, Option, Compound} = require('../lib/class.js');
 
 describe('Parser', function() {
@@ -9,15 +9,15 @@ describe('Parser', function() {
   
   beforeEach(function() {
     result = null;
-    args = new vargs();
+    args = new cmdparse();
   });
   
   it('can parse positional arguments', function() {
-    args.addPositional = {name: 'drink'};
-    args.addPositional = {name: 'garnish', required: false};
+    args.addPositional({name: 'drink'});
+    args.addPositional({name: 'garnish', required: false});
     result = args.parse(argString);
     // check if parse succeeded
-    expect(result).toBeInstanceOf(vargs);
+    expect(result).toBeInstanceOf(cmdparse);
     // check if arguments are defined and instantiatiated
     expect(result.drink).toBeDefined();
     expect(result.garnish).toBeDefined();
@@ -42,13 +42,13 @@ describe('Parser', function() {
   });
   
   it('can parse option arguments and flags', function() {
-    args.addOption = {name: ['-a', '--additions']};
-    args.addOption = {name: ['-l', '--large'], value: 'XXL', flag: true};
-    args.addOption = {name: ['-b', '-bg', '--big'], value: 'BIG', flag: true};
-    args.addOption = {name: '--flavor', value: 'sweet', flag: true};
+    args.addOption({name: ['-a', '--additions']});
+    args.addOption({name: ['-l', '--large'], value: 'XXL', flag: true});
+    args.addOption({name: ['-b', '-bg', '--big'], value: 'BIG', flag: true});
+    args.addOption({name: '--flavor', value: 'sweet', flag: true});
     result = args.parse(argString);
     /* check if parse succeeded */
-    expect(result).toBeInstanceOf(vargs);
+    expect(result).toBeInstanceOf(cmdparse);
     /* check if arguments are defined and instantiatiated */
     expect(result.additions).toBeDefined();
     expect(result.additions).toBeInstanceOf(Option);
@@ -86,15 +86,15 @@ describe('Parser', function() {
   });
   
   it('can parse compound arguments', function() {
-    args.addPositional = {name: 'fruit', help: 'extra fruit'};
-    args.addOption = {name: '--max', value: true, flag: true, help: 'maximize'};
-    args.addCompound = {name: 'make', help: 'froth tea'};
-    args.make.commands.addPositional = {name: 'thing', help: 'thing to make'};
-    args.make.commands.addOption = {name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'};
+    args.addPositional({name: 'fruit', help: 'extra fruit'});
+    args.addOption({name: '--max', value: true, flag: true, help: 'maximize'});
+    args.addCompound({name: 'make', help: 'froth tea'});
+    args.make.commands.addPositional({name: 'thing', help: 'thing to make'});
+    args.make.commands.addOption({name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'});
     result = args.parse(compoundString);
     /* check that positional and option was assigned */
     expect(result).toBeDefined();
-    expect(result).toBeInstanceOf(vargs);
+    expect(result).toBeInstanceOf(cmdparse);
     expect(result.fruit).toBeDefined();
     expect(result.fruit).toBeInstanceOf(Positional);
     expect(result.fruit.value).toEqual('lemon');
@@ -109,7 +109,7 @@ describe('Parser', function() {
     expect(result.make.help).toEqual('froth tea');
     
     expect(result.make.commands).toBeDefined();
-    expect(result.make.commands).toBeInstanceOf(vargs);
+    expect(result.make.commands).toBeInstanceOf(cmdparse);
     expect(result.make.commands.__name).toEqual(result.make.name);
     expect(result.make.commands.__description).toEqual(result.make.help);
     
@@ -126,10 +126,10 @@ describe('Parser', function() {
   
   it('can do parseArgs successfully', function() {
     let expectation = {fruit: 'lemon', make: {thing: 'bubbles', large: true}};
-    args.addPositional = {name: 'fruit', help: 'extra fruit'};
-    args.addCompound = {name: 'make', help: 'froth tea'};
-    args.make.commands.addPositional = {name: 'thing', help: 'thing to make'};
-    args.make.commands.addOption = {name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'};
+    args.addPositional({name: 'fruit', help: 'extra fruit'});
+    args.addCompound({name: 'make', help: 'froth tea'});
+    args.make.commands.addPositional({name: 'thing', help: 'thing to make'});
+    args.make.commands.addOption({name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'});
     result = args.parseArgs(compoundString);
     expect(result).toEqual(expectation);
   });
@@ -141,10 +141,10 @@ describe('Parser', function() {
     com.set('thing', 'bubbles');
     com.set('large', true);
     expectation.set('make', com);
-    args.addPositional = {name: 'fruit', help: 'extra fruit'};
-    args.addCompound = {name: 'make', help: 'froth tea'};
-    args.make.commands.addPositional = {name: 'thing', help: 'thing to make'};
-    args.make.commands.addOption = {name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'};
+    args.addPositional({name: 'fruit', help: 'extra fruit'});
+    args.addCompound({name: 'make', help: 'froth tea'});
+    args.make.commands.addPositional({name: 'thing', help: 'thing to make'});
+    args.make.commands.addOption({name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'});
     result = args.parseArgsMap(compoundString);
     expect(result).toEqual(expectation);
   });
@@ -156,26 +156,26 @@ describe('Default values', function() {
   let argString;
   beforeEach(function() {
     result = null;
-    args = new vargs();
+    args = new cmdparse();
     argString = null;
   });
   
   it('are applied to positional arguments when they are omitted', function() {
-    args.addPositional = {name: 'drink'};
-    args.addPositional = {name: 'garnish', value: 'coconut', required: false};
+    args.addPositional({name: 'drink'});
+    args.addPositional({name: 'garnish', value: 'coconut', required: false});
     argString = ['bubbletea'];
     result = args.parse(argString);
-    expect(result).toBeInstanceOf(vargs);
+    expect(result).toBeInstanceOf(cmdparse);
     expect(result.garnish).toBeDefined();
     expect(result.garnish).toBeInstanceOf(Positional);
     expect(result.garnish.value).toEqual('coconut');
   });
   
   it('are applied to option arguments when they are omitted', function() {
-    args.addOption = {name: ['-a', '--additions'], value: 'banana'};
+    args.addOption({name: ['-a', '--additions'], value: 'banana'});
     argString = ['bubbletea', '-l'];
     result = args.parse(argString);
-    expect(result).toBeInstanceOf(vargs);
+    expect(result).toBeInstanceOf(cmdparse);
     expect(result.additions).toBeDefined();
     expect(result.additions).toBeInstanceOf(Option);
     expect(result.additions.value).toEqual('banana');
@@ -188,20 +188,20 @@ describe('Multiple value options:', function() {
   let argString;
   beforeEach(function() {
     result = null;
-    args = new vargs();
+    args = new cmdparse();
     argString = null;
   });
   
   it('\'+\' (one or more) are parsed correctly', function() {
     /* one or more: if the option has this and a default value,
      * the value will be the default value if there are no real values. */
-    args.addOption = {name: ['-a', '--additions'], nargs: '+'};
-    args.addOption = {name: ['-m', '--more'], value: 'wont be applied', nargs: '+'};
-    args.addOption = {name: ['-s', '--somemore'], value: 'will be applied', nargs: '+'};
-    args.addOption = {name: ['-n', '--nomore'], nargs: '+'};
+    args.addOption({name: ['-a', '--additions'], nargs: '+'});
+    args.addOption({name: ['-m', '--more'], value: 'wont be applied', nargs: '+'});
+    args.addOption({name: ['-s', '--somemore'], value: 'will be applied', nargs: '+'});
+    args.addOption({name: ['-n', '--nomore'], nargs: '+'});
     argString = ['bubbletea', '-a', 'coconut', 'lychee', 'cherry', '-n', '-s', '--more', 'berries'];
     result = args.parse(argString);
-    expect(result).toBeInstanceOf(vargs);
+    expect(result).toBeInstanceOf(cmdparse);
     expect(result.additions).toBeDefined();
     expect(result.more).toBeDefined();
     expect(result.somemore).toBeDefined();
@@ -219,11 +219,11 @@ describe('Multiple value options:', function() {
   it('\'*\' (zero or more) are parsed correctly', function() {
     /* zero or more: if the option has zero args but a default
      * value, apply the default value. */
-    args.addOption = {name: ['-a', '--additions'], nargs: '*'};
-    args.addOption = {name: ['-m', '--more'], value: 'will be applied', nargs: '*'};
+    args.addOption({name: ['-a', '--additions'], nargs: '*'});
+    args.addOption({name: ['-m', '--more'], value: 'will be applied', nargs: '*'});
     argString = ['bubbletea', '-a', 'coconut', 'lychee', 'cherry', '-m'];
     result = args.parse(argString);
-    expect(result).toBeInstanceOf(vargs);
+    expect(result).toBeInstanceOf(cmdparse);
     expect(result.additions).toBeDefined();
     expect(result.additions).toBeInstanceOf(Option);
     expect(result.more).toBeDefined();
@@ -234,10 +234,10 @@ describe('Multiple value options:', function() {
   });
 
   it('\'n\' max length is respected', function() {
-    args.addOption = {name: ['-a', '--additions'], nargs: '5'};
+    args.addOption({name: ['-a', '--additions'], nargs: '5'});
     argString = ['bubbletea', '-a', 'coconut', 'lychee', 'cherry', 'apple', 'mango', 'pineapple'];
     result = args.parse(argString);
-    expect(result).toBeInstanceOf(vargs);
+    expect(result).toBeInstanceOf(cmdparse);
     expect(result.additions).toBeDefined();
     expect(result.additions).toBeInstanceOf(Option);
     expect(result.additions.value).toEqual(['coconut', 'lychee', 'cherry', 'apple', 'mango']);

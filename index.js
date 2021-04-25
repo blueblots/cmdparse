@@ -1,33 +1,64 @@
-// vargs - JavaScript argument parser.
+/* cmdparse - Node.js command line argument parser.
+ * 
+ * Copyright (c) 2020-2021 Elizabeth M. <blueblots@protonmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 const path = require('path');
 
 const {Positional, Option, Compound} = require('./lib/class.js');
 const helperlib = require('./lib/helper.js');
 
-class vargs {
+class cmdparse {
   constructor(name = `${path.basename(__filename)}`, description = '') {
     this.__name = name;
     this.__description = description;
   }
   
-  set addPositional({name, value=null, required=true, help='', position=this.positionals.length}) {
+  addPositional({name, value=null, required=true, help='', position=this.positionals.length}) {
+    if (name === undefined || name === null) {
+      throw 'cmdparse: addPositional: ERROR: name must not be null or undefined';
+    }
     let newPositional = new Positional(name, value, required, help, position);
     this[name] = newPositional;
   }
   
-  set addOption({name, value=null, required=false, help='', flag=false, nargs=false}) {
+  addOption({name, value=null, required=false, help='', flag=false, nargs=false}) {
+    if (name === undefined || name === null) {
+      throw 'cmdparse: addOption: ERROR: name must not be null or undefined';
+    }
     let newOption = new Option(name, value, required, help, flag, nargs);
     this[helperlib.getOptionName(name)] = newOption;
   }
 
-  set addCompound({name, commands=new vargs(), required=true, help=''}) {
+  addCompound({name, commands=new cmdparse(), required=true, help=''}) {
+    if (name === undefined || name === null) {
+      throw 'cmdparse: addCompound: ERROR: name must not be null or undefined';
+    }
     let newCompound = new Compound(name, commands, required, help);
     newCompound.commands.__name = helperlib.getOptionName(name);
     newCompound.commands.__description = help;
     this[helperlib.getOptionName(name)] = newCompound;
   }
   
-  set delArg(name) {
+  delArg(name) {
     delete this[name];
   }
 
@@ -55,7 +86,7 @@ class vargs {
     let result = `\nUSAGE: ${this.__name} `;
     this.positionals.forEach(pos => {
       if (pos.required === false) {
-        result += `[ ${pos.name} ] `
+        result += `[ ${pos.name} ] `;
       }
       else {
         result += `${pos.name} `;
@@ -63,7 +94,7 @@ class vargs {
     });
     this.options.forEach(opt => {
       if (opt.required === false) {
-        result += `[ ${opt.name} ] `
+        result += `[ ${opt.name} ] `;
       }
       else {
         result += `${opt.name} `;
@@ -205,13 +236,13 @@ class vargs {
   }
   
   parse(inputList) {
-    /* Parse a command string (must be an array), return a vargs object with values matching the command string. */
+    /* Parse a command string (must be an array), return a cmdparse object with values matching the command string. */
     let arg;
     let currentInput;
     let detectedPositional;
     let detectedOption;
     let detectedCompound;
-    let result = new vargs();
+    let result = new cmdparse();
     for (let i = 0; i < inputList.length; i++) {
       currentInput = inputList[i];
       /* Handle options */
@@ -219,7 +250,7 @@ class vargs {
       if (arg !== false) {
         detectedOption = this.parseOption(arg, inputList, i);
         if (detectedOption !== false) {
-          result.addOption = detectedOption;
+          result.addOption(detectedOption);
         } else {
           continue;
         }
@@ -229,7 +260,7 @@ class vargs {
       if (arg !== false) {
         detectedPositional = this.parsePositional(currentInput, arg, result);
         if (detectedPositional !== false) {
-          result.addPositional = detectedPositional;
+          result.addPositional(detectedPositional);
         } else {
           continue;
         }
@@ -239,7 +270,7 @@ class vargs {
       if (arg !== false) {
         detectedCompound = arg.commands.parse(inputList.slice(i + 1));
         if (detectedCompound !== false) {
-          result.addCompound = {name: arg.name, required: arg.required, commands: detectedCompound, help: arg.help};
+          result.addCompound({name: arg.name, required: arg.required, commands: detectedCompound, help: arg.help});
         }
         else {
           continue;
@@ -319,7 +350,7 @@ class vargs {
     /* Check that required arguments are available. */
     let count = 0;
     for (let i = 0; i < this.required.length; i++) {
-      /* If the new vargs has a property with the same name
+      /* If the new cmdparse has a property with the same name
        * as one in this.required, increase the count of required arguments. */
       if (Object.keys(input).includes(this.required[i].name) || Object.keys(input).includes(helperlib.getOptionName(this.required[i].name))) {
         count += 1;
@@ -333,12 +364,12 @@ class vargs {
   }
   
   setDefaultValues(input) {
-    /* Set any default values that are needed in input vargs. */
+    /* Set any default values that are needed in input cmdparse. */
     /* Check positional defaults. */
     for (let i = 0; i < this.positionals.length; i++) {
       if (this.positionals[i].value !== null) {
         if (input.positionals.includes(this.positionals[i]) === false) {
-          input.addPositional = {...this.positionals[i]};
+          input.addPositional({...this.positionals[i]});
         }
       }
       else {
@@ -349,11 +380,11 @@ class vargs {
     for (let i = 0; i < this.options.length; i++) {
       if (this.options[i].value !== null && this.options[i].flag === false) {
         if (input[helperlib.getOptionName(this.options[i].name)] === undefined) {
-          input.addOption = {...this.options[i]};
+          input.addOption({...this.options[i]});
         }
       }
       else {
-        continue
+        continue;
       }
     }
   }
@@ -374,4 +405,4 @@ class vargs {
   
 }
 
-module.exports = vargs;
+module.exports = cmdparse;

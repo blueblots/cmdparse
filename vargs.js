@@ -266,6 +266,17 @@ class vargs {
     }
   }
   
+  parseArgsMap(input) {
+    /* Shortcut for parse.toMap */
+    let result = this.parse(input);
+    if (result !== false) {
+      return result.toMap();
+    }
+    else {
+      return false;
+    }
+  }
+  
   verifyCompound(input) {
     /* Return compound argument if input matches a compound name, otherwise false. */
     for (let i = 0; i < this.compounds.length; i++) {

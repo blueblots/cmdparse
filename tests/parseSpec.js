@@ -133,6 +133,21 @@ describe('Parser', function() {
     result = args.parseArgs(compoundString);
     expect(result).toEqual(expectation);
   });
+  
+  it('can do parseArgsMap successfully', function() {
+    let expectation = new Map();
+    expectation.set('fruit', 'lemon');
+    let com = new Map();
+    com.set('thing', 'bubbles');
+    com.set('large', true);
+    expectation.set('make', com);
+    args.addPositional = {name: 'fruit', help: 'extra fruit'};
+    args.addCompound = {name: 'make', help: 'froth tea'};
+    args.make.commands.addPositional = {name: 'thing', help: 'thing to make'};
+    args.make.commands.addOption = {name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'};
+    result = args.parseArgsMap(compoundString);
+    expect(result).toEqual(expectation);
+  });
 });
 
 describe('Default values', function() {

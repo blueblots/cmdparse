@@ -1,18 +1,25 @@
 {
-  "name": "vargs",
+  "name": "cmdparse",
   "version": "1.0.0",
-  "description": "flexible, minimalistic command-line argument parser",
-  "main": "vargs.js",
-  "private": true,
-  "directories": {
-    "test": "tests"
+  "description": "Command line argument parser",
+  "main": "index.js",
+  "engines": "node",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blueblots/cmdparse.git"
   },
+  "homepage": "https://github.com/blueblots/cmdparse#readme",
+  "bugs": {
+    "url": "https://github.com/blueblots/cmdparse/issues"
+  },
+  "files": ["lib/", "index.js"],
+  "private": true,
   "scripts": {
     "test": "jasmine --config=jasmine.json",
     "lint": "jshint *.js"
   },
-  "author": "elizabeth m. <blueblots@protonmail.com>",
-  "license": "UNLICENSED",
+  "author": "Elizabeth M. <blueblots@protonmail.com>",
+  "license": "MIT",
   "devDependencies": {
     "jasmine": "^3.6.1",
     "jshint": "^2.12.0"

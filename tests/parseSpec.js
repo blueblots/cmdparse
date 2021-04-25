@@ -1,9 +1,10 @@
 const vargs = require('../vargs.js');
-const {Positional, Option} = require('../lib/class.js');
+const {Positional, Option, Compound} = require('../lib/class.js');
 
 describe('Parser', function() {
   let args;
-  let argString = ['bubbletea', 'lemon', 'tea', '-l', '--additions', 'pineapple', '--flavor'];
+  let argString = ['bubbletea', 'lemon', 'tea', '-l', '-bg', '--additions', 'pineapple', '--flavor'];
+  let compoundString = ['lemon', 'make', 'bubbles', '-l', '--max'];
   let result;
   
   beforeEach(function() {
@@ -43,18 +44,21 @@ describe('Parser', function() {
   it('can parse option arguments and flags', function() {
     args.addOption = {name: ['-a', '--additions']};
     args.addOption = {name: ['-l', '--large'], value: 'XXL', flag: true};
+    args.addOption = {name: ['-b', '-bg', '--big'], value: 'BIG', flag: true};
     args.addOption = {name: '--flavor', value: 'sweet', flag: true};
     result = args.parse(argString);
-    // check if parse succeeded
+    /* check if parse succeeded */
     expect(result).toBeInstanceOf(vargs);
-    // check if arguments are defined and instantiatiated
+    /* check if arguments are defined and instantiatiated */
     expect(result.additions).toBeDefined();
     expect(result.additions).toBeInstanceOf(Option);
     expect(result.large).toBeDefined();
     expect(result.large).toBeInstanceOf(Option);
+    expect(result.big).toBeDefined();
+    expect(result.big).toBeInstanceOf(Option);
     expect(result.flavor).toBeDefined();
     expect(result.flavor).toBeInstanceOf(Option);
-    // check if arguments' properties are correct
+    /* check if arguments' properties are correct */
     expect(result.additions.name).toEqual(['-a', '--additions']);
     expect(result.additions.value).toEqual('pineapple');
     expect(result.additions.required).toEqual(false);
@@ -63,11 +67,15 @@ describe('Parser', function() {
     expect(result.large.value).toEqual('XXL');
     expect(result.large.required).toEqual(false);
     expect(result.large.flag).toEqual(true);
+    expect(result.big.name).toEqual(['-b', '-bg', '--big']);
+    expect(result.big.value).toEqual('BIG');
+    expect(result.big.required).toEqual(false);
+    expect(result.big.flag).toEqual(true);
     expect(result.flavor.name).toEqual('--flavor');
     expect(result.flavor.value).toEqual('sweet');
     expect(result.flavor.required).toEqual(false);
     expect(result.flavor.flag).toEqual(true);
-    // check that bogus options and positionals are not included
+    /* check that bogus options and positionals are not included */
     expect(result.bubbletea).not.toBeDefined();
     expect(result.lemon).not.toBeDefined();
     expect(result.tea).not.toBeDefined();
@@ -77,12 +85,56 @@ describe('Parser', function() {
     expect(result.pineapple).not.toBeDefined();
   });
   
-  xit('can parse compound arguments', function() {
-      
+  it('can parse compound arguments', function() {
+    args.addPositional = {name: 'fruit', help: 'extra fruit'};
+    args.addOption = {name: '--max', value: true, flag: true, help: 'maximize'};
+    args.addCompound = {name: 'make', help: 'froth tea'};
+    args.make.commands.addPositional = {name: 'thing', help: 'thing to make'};
+    args.make.commands.addOption = {name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'};
+    result = args.parse(compoundString);
+    /* check that positional and option was assigned */
+    expect(result).toBeDefined();
+    expect(result).toBeInstanceOf(vargs);
+    expect(result.fruit).toBeDefined();
+    expect(result.fruit).toBeInstanceOf(Positional);
+    expect(result.fruit.value).toEqual('lemon');
+    expect(result.max).toBeDefined();
+    expect(result.max).toBeInstanceOf(Option);
+    expect(result.max.value).toEqual(true);
+    /* check compound argument */
+    expect(result.make).toBeDefined();
+    expect(result.make).toBeInstanceOf(Compound);
+    expect(result.make.name).toEqual('make');
+    expect(result.make.required).toEqual(true);
+    expect(result.make.help).toEqual('froth tea');
+    
+    expect(result.make.commands).toBeDefined();
+    expect(result.make.commands).toBeInstanceOf(vargs);
+    expect(result.make.commands.__name).toEqual(result.make.name);
+    expect(result.make.commands.__description).toEqual(result.make.help);
+    
+    expect(result.make.commands.thing).toBeDefined();
+    expect(result.make.commands.thing).toBeInstanceOf(Positional);
+    expect(result.make.commands.thing.value).toEqual('bubbles');
+    
+    expect(result.make.commands.large).toBeDefined();
+    expect(result.make.commands.large).toBeInstanceOf(Option);
+    expect(result.make.commands.large.value).toEqual(true);
+    
+    expect(result.make.commands.max).not.toBeDefined();
+  });
+  
+  it('can do parseArgs successfully', function() {
+    let expectation = {fruit: 'lemon', make: {thing: 'bubbles', large: true}};
+    args.addPositional = {name: 'fruit', help: 'extra fruit'};
+    args.addCompound = {name: 'make', help: 'froth tea'};
+    args.make.commands.addPositional = {name: 'thing', help: 'thing to make'};
+    args.make.commands.addOption = {name: ['-l', '--large'], value: true, flag: true, help: 'make it bigger'};
+    result = args.parseArgs(compoundString);
+    expect(result).toEqual(expectation);
   });
 });
 
-//TODO
 describe('Default values', function() {
   let args;
   let result;
@@ -98,13 +150,9 @@ describe('Default values', function() {
     args.addPositional = {name: 'garnish', value: 'coconut', required: false};
     argString = ['bubbletea'];
     result = args.parse(argString);
-    //console.log('pos defaults: ', result);
-    // check if parse succeeded
     expect(result).toBeInstanceOf(vargs);
-    // check if arguments are defined and instantiatiated
     expect(result.garnish).toBeDefined();
     expect(result.garnish).toBeInstanceOf(Positional);
-    // check if arguments' properties are correct
     expect(result.garnish.value).toEqual('coconut');
   });
   
@@ -112,12 +160,9 @@ describe('Default values', function() {
     args.addOption = {name: ['-a', '--additions'], value: 'banana'};
     argString = ['bubbletea', '-l'];
     result = args.parse(argString);
-    //console.log('opt defaults: ', result);
     expect(result).toBeInstanceOf(vargs);
-    // check if arguments are defined and instantiatiated
     expect(result.additions).toBeDefined();
     expect(result.additions).toBeInstanceOf(Option);
-    // check if arguments' properties are correct
     expect(result.additions.value).toEqual('banana');
   });
 });
@@ -134,7 +179,7 @@ describe('Multiple value options:', function() {
   
   it('\'+\' (one or more) are parsed correctly', function() {
     /* one or more: if the option has this and a default value,
-     * the value will be the default value. */
+     * the value will be the default value if there are no real values. */
     args.addOption = {name: ['-a', '--additions'], nargs: '+'};
     args.addOption = {name: ['-m', '--more'], value: 'wont be applied', nargs: '+'};
     args.addOption = {name: ['-s', '--somemore'], value: 'will be applied', nargs: '+'};
@@ -142,17 +187,15 @@ describe('Multiple value options:', function() {
     argString = ['bubbletea', '-a', 'coconut', 'lychee', 'cherry', '-n', '-s', '--more', 'berries'];
     result = args.parse(argString);
     expect(result).toBeInstanceOf(vargs);
-    
     expect(result.additions).toBeDefined();
     expect(result.more).toBeDefined();
     expect(result.somemore).toBeDefined();
     expect(result.nomore).not.toBeDefined();
 
-    
     expect(result.additions).toBeInstanceOf(Option);
     expect(result.more).toBeInstanceOf(Option);
     expect(result.somemore).toBeInstanceOf(Option);
-    // check that value is an array, and contains the values
+    
     expect(result.additions.value).toEqual(['coconut', 'lychee', 'cherry']);
     expect(result.more.value).toEqual(['berries']);
     expect(result.somemore.value).toEqual('will be applied');

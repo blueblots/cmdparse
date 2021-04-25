@@ -1,3 +1,2 @@
 refine test suite
-add ability to use compound arguments e.g zypper install foo
 change package name; xvargs?

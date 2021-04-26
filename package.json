@@ -1,25 +1,24 @@
 {
   "name": "cmdparse",
   "version": "1.0.0",
-  "description": "Command line argument parser",
-  "main": "index.js",
-  "engines": "node",
+  "description": "Lightweight command line argument parser",
+  "keywords": ["lib", "library", "command line", "cli", "command-line", "command line interface", "parser", "positional", "optional", "subcommands", "compound", "argument", "arguments", "command-line interface", "interface", "terminal", "options", "arg", "args", "argv", "xargs", "argparse", "parse args", "cli interface", "getopt", "getopts", "zero dependencies", "no dependencies"],
+  "author": "Elizabeth M. <63152708+blueblots@users.noreply.github.com>",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/blueblots/cmdparse.git"
   },
   "homepage": "https://github.com/blueblots/cmdparse#readme",
-  "bugs": {
-    "url": "https://github.com/blueblots/cmdparse/issues"
-  },
+  "bugs": "https://github.com/blueblots/cmdparse/issues",
+  "main": "index.js",
+  "engines": "node",
   "files": ["lib/", "index.js"],
   "private": true,
   "scripts": {
     "test": "jasmine --config=jasmine.json",
     "lint": "jshint *.js"
   },
-  "author": "Elizabeth M. <blueblots@protonmail.com>",
-  "license": "MIT",
   "devDependencies": {
     "jasmine": "^3.6.1",
     "jshint": "^2.12.0"

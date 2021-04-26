@@ -14,7 +14,6 @@
   "main": "index.js",
   "engines": "node",
   "files": ["lib/", "index.js"],
-  "private": true,
   "scripts": {
     "test": "jasmine --config=jasmine.json",
     "lint": "jshint *.js"

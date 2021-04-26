@@ -122,8 +122,23 @@ describe('Getters', function() {
   });
   
   it('can get help', function() {
-    expect(args.getShortHelp).toEqual('\nUSAGE: cmdparse drink [ garnish ] [ -a,--additions ] [ -l,--large ] ');
-    expect(args.getLongHelp).toEqual('\ncmdparse - argument parser\n\nUSAGE: cmdparse drink [ garnish ] [ -a,--additions ] [ -l,--large ] \n\ndrink (default: bubbletea)\tchoose a drink\ngarnish (default: lemon)\tchoose a garnish\n\nOPTIONS:\n-a,--additions\textras\n-l,--large (default: XXL)\tlarge size\n');
+    //console.log(args.getShortHelp());
+    //console.log(args.getLongHelp());
+    expect(args.getShortHelp()).toEqual('\nUSAGE: cmdparse <drink> [ garnish ] [ -a,--additions ] [ -l,--large ] install <package> [ -r,--recommends ]  ');
+    expect(args.getLongHelp()).toEqual(`
+cmdparse - argument parser
+USAGE: cmdparse <drink> [ garnish ] [ -a,--additions ] [ -l,--large ] install <package> [ -r,--recommends ]  
+
+drink                     choose a drink
+garnish                 choose a garnish
+
+OPTIONS:
+-a,--additions                    extras
+-l,--large                    large size
+
+COMMANDS:
+install                install a package
+`);
   });
 
   it('can get compounds', function() {

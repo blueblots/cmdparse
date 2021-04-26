@@ -82,14 +82,14 @@ class cmdparse {
     return helperlib.getPropertiesByProperty(this, 'flag');
   }
   
-  get getShortHelp() {
-    let result = `\nUSAGE: ${this.__name} `;
+  getShortHelp(prefix = '\nUSAGE: ') {
+    let result = `${prefix}${this.__name} `;
     this.positionals.forEach(pos => {
       if (pos.required === false) {
         result += `[ ${pos.name} ] `;
       }
       else {
-        result += `${pos.name} `;
+        result += `<${pos.name}> `;
       }
     });
     this.options.forEach(opt => {
@@ -97,22 +97,35 @@ class cmdparse {
         result += `[ ${opt.name} ] `;
       }
       else {
-        result += `${opt.name} `;
+        result += `<${opt.name}> `;
+      }
+    });
+    this.compounds.forEach(com => {
+      if (com.required === false) {
+        result += `[ ${com.commands.getShortHelp('')} ] `;
+      }
+      else {
+        result += `${com.commands.getShortHelp('')} `;
       }
     });
     return result;
   }
   
-  get getLongHelp() {
-    let result = `\n${this.__name} - ${this.__description}\n${this.getShortHelp}\n\n`;
-    this.positionals.forEach(pos => {
-      result += pos.help.toString() + '\n';
-    });
+  getLongHelp(length=40, prefix='USAGE: ') {
+    let result = `\n${this.__name} - ${this.__description}\n${this.getShortHelp(prefix)}\n\n`;
+    if (this.positionals.length > 0) {
+      result += helperlib.formatHelp(helperlib.extractPropertiesFromObjects(this.positionals, 'name'),
+                                     helperlib.extractPropertiesFromObjects(this.positionals, 'help'), ' ', length);
+    }
     if (this.options.length > 0) {
       result += '\nOPTIONS:\n';
-      this.options.forEach(opt => {
-        result += opt.help.toString() + '\n';
-      });
+      result += helperlib.formatHelp(helperlib.extractPropertiesFromObjects(this.options, 'name'),
+                                     helperlib.extractPropertiesFromObjects(this.options, 'help'), ' ', length);
+    }
+    if (this.compounds.length > 0) {
+      result += '\nCOMMANDS:\n';
+      result += helperlib.formatHelp(helperlib.extractPropertiesFromObjects(this.compounds, 'name'),
+                                     helperlib.extractPropertiesFromObjects(this.compounds, 'help'), ' ', length);
     }
     return result;
   }

@@ -310,4 +310,4 @@ Please report any bugs or problems using the [Github issue tracker](https://gith
 
 Copyright 2020-2021 Elizabeth M.
 
-This program is available under the MIT license; see the [license here]().
+This program is available under the MIT license; see the [license here](https://github.com/blueblots/cmdparse/blob/master/LICENSE).

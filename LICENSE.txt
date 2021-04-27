@@ -1,4 +1,3 @@
-cmdparse - Node.js command line argument parser.
 
 Copyright (c) 2020-2021 Elizabeth M. <63152708+blueblots@users.noreply.github.com>
 

@@ -14,15 +14,18 @@ yarn add cmdparse
 
 ## Usage
 
+Require and instantiate cmdparse:
+
 ```JavaScript
-/* Require and instantiate cmdparse. */
-
 const cmdparse = require('./index.js');
+
 let args = new cmdparse('exampleName', 'A cmdparse example description');
+```
 
-/* You can add positional arguments, options or compound arguments
- * (arguments that take arguments, like git commit or npm run test). */
+You can add positional arguments, options or compound arguments
+(arguments that take arguments, like git commit or npm run test).
 
+```JavaScript
 args.addPositional({name: 'file', help: 'an input file'});
 args.addPositional({name: 'bogus', help: 'delete me'});
 args.addOption({name: ['-o', '--output'], help: 'an output file'});
@@ -65,9 +68,11 @@ console.log(args);
 //     help: 'get help about an argument'
 //   }
 // }
+```
 
-/* You can also delete arguments by passing their names to the delArg() method. */
+You can also delete arguments by passing their names to the delArg() method.
 
+```JavaScript
 args.delArg('bogus');
 console.log(args);
 // cmdparse {
@@ -99,13 +104,13 @@ console.log(args);
 //     help: 'get help about an argument'
 //   }
 // }
+```
 
+### Help messages
 
-/*********************************************************************/
+Use the `getShortHelp()` and `getLongHelp()` methods to show help messages.
 
-
-/* Print help messages. */
-
+```JavaScript
 console.log(args.getShortHelp());
 // USAGE: example name <file> [ -o,--output ] [ help <argument>  ] 
 
@@ -126,34 +131,36 @@ console.log(args.help.commands.getLongHelp(40, 'USAGE: exampleName '));
 // USAGE: help <argument> 
 // 
 // argument      argument to see help about
+```
 
-/* You can change the spacing between the argument names and descriptions
- * by passing a number to getLongHelp(). The parameter will determine the
- * width of the help output (the default is 40). The 'USAGE: ' prefix can
- * also be changed, by passing a different string after the width parameter.
- * 
- * You can also change the prefix of getShortHelp() (e.g. 'USAGE: ', the
- * default). Just pass in the string that you'd prefer. */
+You can change the spacing between the argument names and descriptions
+by passing a number to `getLongHelp()`. The parameter will determine the
+width of the help output (the default is 40). The `'USAGE: '` prefix can
+also be changed, by passing a different string after the `length` parameter.
 
-/*********************************************************************/
+You can also change the prefix of `getShortHelp()` (e.g. `'USAGE: ',` the
+default). Just pass in the string that you'd prefer.
 
+### Parsing input
 
-/* Do parseArgs(input) or parseArgsMap(input) to parse input (returning
- * an object or Map respectively). */
+Do `parseArgs(input)` or `parseArgsMap(input)` to parse input (returning
+an object or Map respectively).
 
+```JavaScript
 let objResult = args.parseArgs(process.argv.slice(2));
 let mapResult = args.parseArgsMap(process.argv.slice(2));
-
-/* Assuming process.env.argv.slice(2) is ['foo.txt', '-o', 'bar.txt']: */
+// Assuming process.argv.slice(2) is ['foo.txt', '-o', 'bar.txt']
 
 console.log(objResult);
 // [Object: null prototype] { file: 'foo.txt', output: 'bar.txt' }
 
 console.log(mapResult);
 // Map(2) { 'file' => 'foo.txt', 'output' => 'bar.txt' }
+```
 
-/* An example using the compound argument 'help': */
+An example using the compound argument `help`:
 
+```JavaScript
 let compoundResult = args.parseArgs(['foo.txt', 'help', 'file']);
 
 console.log(compoundResult);
@@ -161,18 +168,17 @@ console.log(compoundResult);
 //   file: 'foo.txt',
 //   help: [Object: null prototype] { argument: 'file' }
 // }
+```
 
-/* As can be seen above, compound arguments are converted to an object 
- * stored under the name of the compound argument ('help'). If you use
- * parseArgsMap the compound argument is converted to a Map instead. */
+As can be seen above, compound arguments are converted to an object 
+stored under the name of the compound argument ('help'). If you use
+`parseArgsMap()` the compound argument is converted to a Map instead.
 
+### Multiple value options
 
-/*********************************************************************/
+Let's say you wanted to take several input files. You can use a multiple value option.
 
-
-/* Let's say you wanted to take several input files.
- * You can use a multiple value option. */
-
+```JavaScript
 args.addOption({name: ['-i', '--inputs'], nargs: '+', help: 'some input files'});
 
 /* nargs can have four values: '+' (one or more), '*' (zero or more),
@@ -185,30 +191,30 @@ console.log(nargsResult);
 //   file: 'foo.txt',
 //   inputs: [ 'foobar.txt', 'bar.txt' ]
 // }
+```
 
-/* Multiple value options always return an array as their value. */
+Multiple value options always return an array as their value.
 
+### Required arguments
 
-/*********************************************************************/
+If you leave out a required argument (in this case, the 'file' positional),
+parseArgs() and parseArgsMap() will return false.
 
-
-/* If you leave out a required argument (in this case, the 'file' positional),
- * parseArgs() and parseArgsMap() will return false. */
-
+```JavaScript
 let falseResult = args.parseArgs(['-i', 'foobar.txt', 'bar.txt']);
 console.log(falseResult);
 // false!
+```
 
-/* Positional and compound arguments are required by default, options are not.
- * You can set this by using a 'required' property of true or false in addPositional(),
- * addOption(), or addCompound(). */
+Positional and compound arguments are required by default, options are not.
+You can set this by using a 'required' property of true or false in `addPositional()`,
+`addOption()`, or `addCompound()`.
 
+### Flags/switches
 
-/*********************************************************************/
+You can also use options as flags (also known as switches), an example below:
 
-
-/* You can also use options as flags (also known as switches), an example below: */
-
+```JavaScript
 args.addOption({name: '--verbose', flag: true, value: true, help: 'show more output'});
 console.log(args.parseArgs(['foo.txt', '-i', 'foobar.txt', 'bar.txt', '--verbose']));
 // [Object: null prototype] {
@@ -216,27 +222,24 @@ console.log(args.parseArgs(['foo.txt', '-i', 'foobar.txt', 'bar.txt', '--verbose
 //   inputs: [ 'foobar.txt', 'bar.txt' ],
 //   verbose: true
 // }
+```
 
+If a flag is not found in the input you pass to `parseArgs()`, then it is omitted from
+the returned object or Map.
 
-/* If a flag is not found in the input you pass to parseArgs(), then it is omitted from
- * the returned object or Map. */
+### Default values
 
+Arguments can also have default values, which will be used whenever the argument isn't
+present in the input.
 
-/*********************************************************************/
-
-
-/* Arguments can also have default values, which will be used whenever the argument isn't
- * present in the input. */
-
+```JavaScript
 args.addPositional({name: 'defaultFile', required: false, value: 'Foobar', help: 'a default value'});
 console.log(args.parseArgs(['foo.txt']));
 // [Object: null prototype] { file: 'foo.txt', defaultFile: 'Foobar' }
-
-
-/*********************************************************************/
-
-/* For further information, see the Reference. */
 ```
+
+For further information, see the Reference.
+
 
 ## Reference
 

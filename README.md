@@ -2,6 +2,16 @@
 
 **cmdparse** is a command line argument parser for Node.js. It supports positional, optional and compound arguments (subcommands), flags, required arguments, multiple option names and values etc. It is inspired by Python's `argparse` module. It also has no external dependencies.
 
+## Installation
+
+Available on [NPM](https://www.npmjs.com/package/cmdparse) and [Yarn](https://yarnpkg.com/package/cmdparse):
+
+```
+npm install cmdparse
+
+yarn add cmdparse
+```
+
 ## Usage
 
 ```JavaScript

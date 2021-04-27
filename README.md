@@ -12,6 +12,8 @@ npm install cmdparse
 yarn add cmdparse
 ```
 
+If you don't want to use a package manager, you can download cmdparse from the [releases page](https://github.com/blueblots/cmdparse/releases/tag/1.0.0).
+
 ## Usage
 
 Require and instantiate cmdparse:
